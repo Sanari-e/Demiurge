@@ -1,0 +1,78 @@
+body {
+    font-family: 'Lora', Georgia, serif;
+}
+.collapse, .navbar-collapse {
+    font-size: 120%;
+}
+
+.contentosnovnnoy {
+     background-color: rgb(255, 214, 167); 
+     width: 75%; 
+     height: fit-content;
+     margin-top: 2%;
+     margin-bottom: 2%;
+     justify-self: center;
+     border-radius: 12%;
+}
+
+.podvalchik {
+   background-color: rgb(210, 162, 255);
+   
+}
+
+.glav:hover {
+    transform: translateY(-4px) scale(1.03); 
+}
+
+.glav:active {
+    transform: translateY(-1px) scale(0.98);
+    transition: all 0.1s ease;
+}
+
+
+.nav-icon {
+    object-fit: contain; 
+    transition: transform 0.2s ease; 
+}
+
+.nav-icon:hover {
+    transform: scale(1.1);
+}
+
+.nav-link.p-0 {
+    padding: 0 !important;
+    display: flex;
+    align-items: center;
+}
+
+.navbar-brand.glav {
+     background: linear-gradient(135deg, #875fb3 0%, #cfacf0 100%);
+    padding: 8px 24px;
+    border-radius: 50px;
+    color: #fff !important;
+    font-size: 20px; 
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: all 0.3s ease-in-out;
+    display: inline-flex;
+    align-items: center;
+}
+
+.row.podv {
+    text-align: center;
+    justify-content: center;
+}
+
+a, a:link, a:visited, a:hover, a:active, a:focus {
+    color: inherit !important;
+    text-decoration: none !important;
+}
+
+#knopkaaa {
+    transition: all 0.3s ease-in-out;
+}
+
+#knopkaaa:hover {
+    transform: scale(1.05);
+}
