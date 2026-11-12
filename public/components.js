@@ -4,9 +4,11 @@ const registerModalHTML = `
     <div class="modal-content" style="background-color: #fce4d6; font-family: 'Lora', serif;">
       <div class="modal-header">
         <h5 class="modal-title" style="font-family: 'MedievalSharp'; font-size: 200%;">Становление путешественником</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button><br>
+        
       </div>
       <div class="modal-body">
+      <img src="registr.png" style="width: 95%; margin-bottom: 5%;">
         <form id="registerForm">
           <div class="mb-3">
             <label for="regUserName" class="form-label">Имя пользователя</label>
