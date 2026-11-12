@@ -76,3 +76,13 @@ a, a:link, a:visited, a:hover, a:active, a:focus {
 #knopkaaa:hover {
     transform: scale(1.05);
 }
+
+
+#account{
+    background-color: #e3c4ff;
+}
+
+.glcontent {
+    margin-left: 3%; 
+    margin-right: 3%;
+}
