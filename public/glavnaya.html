@@ -68,22 +68,20 @@
   <a class="nav-link dropdown-toggle p-0" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
     <img src="Иконка аккаунта.png" class="nav-icon" style="width: 50px;">
   </a>
-  <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton">
+  <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton" id="account" style="width: 400%;">
     
-    <!-- Гостевое меню (добавили класс menu-guest-item) -->
     <li class="menu-guest-item">
-        <button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#registerModal">Стать Путешественником</button>
+        <button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#registerModal">Стать Путешественником <img src="https://cdn-icons-png.flaticon.com/512/96/96239.png" style="width: 8%;"></button>
     </li>
     <li class="menu-guest-item">
         <button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#loginModal">Вход</button>
     </li>
 
-    <!-- Меню пользователя (добавили класс menu-user-item и style="display: none;") -->
     <li class="menu-user-item" style="display: none;">
         <a class="dropdown-item" href="#">Мой профиль</a>
     </li>
     <li class="menu-user-item" style="display: none;">
-        <a class="dropdown-item" href="#">Мои миры</a>
+        <a class="dropdown-item" href="MoiMiri.html">Мои миры</a>
     </li>
     <li class="menu-user-item" style="display: none;">
         <hr class="dropdown-divider">
@@ -106,9 +104,9 @@
 
 <div class="contentosnovnnoy">
     <br>
-    <img src="https://avatars.mds.yandex.net/i?id=4a52f01a5713d998b745cf3c9ea0309b95bdf49a-4303190-images-thumbs&n=13" style="margin-left: 2%; margin-top: 3%; border-radius: 15px; float: left; margin-right: 6%; width: 40%;">
-    <h2>Что такое Demiurge?</h2>
-    <p style="margin-left: 3%; margin-right: 3%;">Demiurge - это бесплатная открытая платформа для создания собственный миров, карт, историй. Платформа создана для творцов-демиургов, горящих желанием поделиться своим миром с остальными, путешественников, идущих по чужим картам и маршрутам и очень любопытных наблюдателей, следящих за историями других миров.
+    <img src="https://avatars.mds.yandex.net/i?id=4a52f01a5713d998b745cf3c9ea0309b95bdf49a-4303190-images-thumbs&n=13" style="margin-left: 4%; margin-top: 3%; border-radius: 15px; float: left; margin-right: 4%; width: 40%;">
+    <h2 class="glcontent" style="text-decoration: underline;">Что такое Demiurge?</h2>
+    <p class="glcontent">Demiurge - это бесплатная открытая платформа для создания собственный миров, карт, историй. Платформа создана для творцов-демиургов, горящих желанием поделиться своим миром с остальными, путешественников, идущих по чужим картам и маршрутам и очень любопытных наблюдателей, следящих за историями других миров.
         Пользуясь Demiurge, вы сможете вместе с другими людьми творить свою историю. Загрузите карту и отметьте на ней важные места и локации, позвольте отважным путешественникам оставить на ней свои следы. 
         Создайте собственную библиотеку записей о мире. Ведите вместе с вашими путешественниками походный журнал, хранящий в себе неисчислимое количество событий и встреч. <br><br>
 
@@ -118,7 +116,7 @@
           <h5 class="card-title">Начните создавать мир уже сейчас >>></h5>
           </div></div></a><br><br>
 
-        бла бла бла, тут еще будут фоточки карт с отметками, если когда-то я сделаю этот функционал (должна)<br><br>
+        <p class="glcontent">бла бла бла, тут еще будут фоточки карт с отметками, если когда-то я сделаю этот функционал (должна)</p><br><br>
     </p>
 </div>
 
@@ -136,7 +134,7 @@
     </div>
     <div class="col" style="color: rgb(97, 73, 153);">
       <br>
-      <a href="#" style="font-size: 120%;">Стать путешественником</a><br>
+      <a href="#" style="font-size: 120%;" data-bs-toggle="modal" data-bs-target="#registerModal">Стать путешественником</a><br>
       <a href="#">Помощь/FAQ</a><br>
       <a href="#">Мои миры</a><br>
       <a href="#">Случайный мир</a><br>
@@ -150,6 +148,12 @@
 </div>
 </div>
 
+
+
+<div id="modal-container"></div>
+<script src="components.js"></script>
+</body>
+</html>
 
 
 <div id="modal-container"></div>
