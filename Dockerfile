@@ -1,12 +1,11 @@
-FROM node:22-slim
+FROM node:22-alpine
 
-# Установка зависимостей для компиляции нативных модулей
-RUN apt-get update && apt-get install -y python3 make g++
+RUN apk add --no-cache python3 make g++
 
 WORKDIR /app
 
 COPY package*.json ./
-RUN npm ci
+RUN npm ci --omit=dev
 
 COPY . .
 
