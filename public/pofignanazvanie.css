@@ -154,7 +154,7 @@ border-radius: 8px;
 #ArticleGrid {
     flex-grow: 1;
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    grid-template-rows: repeat(auto-fill, minmax(250px, 1fr));
     gap: 20px;
     padding: 10px;
     overflow-y: auto;
