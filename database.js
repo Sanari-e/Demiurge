@@ -1,26 +1,35 @@
-const Database = require('better-sqlite3');
-const db = new Database('database.db');
+const { Pool } = require('pg');
 
-db.exec(`
-  CREATE TABLE IF NOT EXISTS users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    username TEXT NOT NULL,
-    email TEXT UNIQUE NOT NULL,
-    password TEXT NOT NULL,
-    role TEXT DEFAULT 'Путешественник'
-  )
-`);
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false 
+  }
+});
 
-db.exec(`
-  CREATE TABLE IF NOT EXISTS articles (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    title TEXT NOT NULL,
-    content TEXT NOT NULL,
-    image_url TEXT,
-    author_id INTEGER,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (author_id) REFERENCES users(id)
-  )
-`);
+async function initDb() {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS users (
+      id SERIAL PRIMARY KEY,
+      username TEXT NOT NULL,
+      email TEXT UNIQUE NOT NULL,
+      password TEXT NOT NULL,
+      role TEXT DEFAULT 'Путешественник'
+    );
+  `);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS articles (
+      id SERIAL PRIMARY KEY,
+      title TEXT NOT NULL,
+      content TEXT NOT NULL,
+      image_url TEXT,
+      author_id INTEGER REFERENCES users(id),
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+  `);
+  console.log("Таблицы проверены/созданы.");
+}
 
-module.exports = db;
+initDb();
+
+module.exports = pool;
