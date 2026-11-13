@@ -49,12 +49,34 @@ app.post('/api/register', async (req, res) => {
 
 // --- ВХОД ---
 app.post('/api/login', async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    const result = await db.query('SELECT * FROM users WHERE email = $1', [email]);
-    const user = result.rows[0]; // Данные теперь в .rows[0]
-    // ... (остальная логика проверки пароля и отправки ответа)
-  } catch (error) { /* ... */ }
+    try {
+        const { email, password } = req.body;
+        // 1. Ищем пользователя в PostgreSQL
+        const result = await db.query('SELECT * FROM users WHERE email = $1', [email]);
+        const user = result.rows[0]; // 👈 ВАЖНО: данные теперь в .rows[0] (раньше было .get())
+        // Если не нашли — выдаем ошибку
+        if (!user) {
+            return res.status(400).json({ error: 'Путешественник с таким email не найден!' });
+        }
+        // 2. Сравниваем пароль
+        const isPasswordValid = await bcrypt.compare(password, user.password);
+        if (!isPasswordValid) {
+            return res.status(400).json({ error: 'Неверный пароль!' });
+        }
+        // 3. Отправляем данные пользователя
+        res.status(200).json({ 
+            message: 'С возвращением!', 
+            user: { 
+                id: user.id, 
+                username: user.username, 
+                email: user.email, 
+                role: user.role 
+            } 
+        });
+    } catch (error) {
+        console.error(error); // Если упадет — мы увидим это в логах Railway
+        res.status(500).json({ error: 'Ошибка при входе...' });
+    }
 });
 
 // --- СОЗДАНИЕ СТАТЬИ ---
