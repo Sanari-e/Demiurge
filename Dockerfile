@@ -1,11 +1,12 @@
 FROM node:22-alpine
 
-RUN npm install
+RUN apk add --no-cache python3 make g++
 
 WORKDIR /app
 
 COPY package*.json ./
-RUN npm ci --omit=dev
+
+RUN npm install
 
 COPY . .
 
