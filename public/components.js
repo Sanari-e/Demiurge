@@ -1,6 +1,3 @@
-// ==========================================
-// 1. HTML-ШАБЛОНЫ (Все переменные вверху)
-// ==========================================
 const registerModalHTML = `
 <div class="modal fade" id="registerModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog">
@@ -198,7 +195,6 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
     }
-    loadArticles();
 
     // --- МЕНЮ (Гость или Путешественник) ---
     const currentUserString = localStorage.getItem('demiurgeUser');
@@ -220,12 +216,12 @@ document.addEventListener("DOMContentLoaded", () => {
         guestItems.forEach(item => item.style.display = 'block');
         userItems.forEach(item => item.style.display = 'none');
     }
+    loadArticles(); 
 });
 
-// 3. ЛОГИКА ЗАГРУЗКИ И ОТРИСОВКИ АРХИВА
 // ==========================================
-
-// Эта функция идет на сервер и забирает статьи
+// 3. ФУНКЦИЯ ОТРИСОВКИ АРХИВА (Для будущего использования)
+// ==========================================
 async function loadArticles() {
     try {
         const response = await fetch('/api/articles');
@@ -272,7 +268,7 @@ function updateArchiveDisplay(articlesArray) {
                 <p style="font-size: 14px; color: #555;">${article.content.substring(0, 100)}...</p>
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
                     <small style="color: #888;">Автор: ${article.author_name || 'Неизвестен'}</small>
-                    <button class="btn btn-sm btn-primary" style="background-color: #d5a9ff; border: none; color: #2b1140;">Читать</button>
+                     <a href="article.html?id=${article.id}" class="btn btn-sm btn-primary" style="background-color: #d5a9ff; border: none; color: #2b1140; text-decoration: none;">Читать</a>
                 </div>
             `;
             
