@@ -138,6 +138,74 @@ app.get('/api/articles/:id', async (req, res) => {
 
 
 
+app.put('/api/articles/:id', upload.single('image'), async (req, res) => {
+    try {
+        const articleId = req.params.id;
+        const { title, content, author_id } = req.body;
+        
+        // 1. Проверяем, существует ли статья и принадлежит ли она этому автору
+        const checkArticle = await db.query('SELECT * FROM articles WHERE id = $1', [articleId]);
+        const article = checkArticle.rows[0];
+
+        if (!article) {
+            return res.status(404).json({ error: 'Статья не найдена' });
+        }
+
+        // Проверка прав (если author_id не совпадает, запрещаем)
+        if (article.author_id !== parseInt(author_id)) {
+            return res.status(403).json({ error: 'Вы можете редактировать только свои статьи!' });
+        }
+
+        // 2. Формируем путь к картинке (если загружена новая, берем её, иначе оставляем старую)
+        let imageUrl = article.image_url;
+        if (req.file) {
+            imageUrl = '/uploads/' + req.file.filename;
+        }
+
+        // 3. Обновляем данные в базе
+        await db.query(
+            'UPDATE articles SET title = $1, content = $2, image_url = $3 WHERE id = $4',
+            [title, content, imageUrl, articleId]
+        );
+
+        res.status(200).json({ message: 'Статья успешно обновлена!' });
+    } catch (error) {
+        console.error("Ошибка при обновлении:", error);
+        res.status(500).json({ error: 'Не удалось обновить статью.' });
+    }
+});
+
+
+
+app.delete('/api/articles/:id', async (req, res) => {
+    try {
+        const articleId = req.params.id;
+        const { author_id } = req.query; // ID пользователя передадим в строке запроса (URL)
+
+        // 1. Проверяем, существует ли статья
+        const checkArticle = await db.query('SELECT * FROM articles WHERE id = $1', [articleId]);
+        const article = checkArticle.rows[0];
+
+        if (!article) {
+            return res.status(404).json({ error: 'Статья не найдена' });
+        }
+
+        // 2. Проверка прав (удалять может только автор)
+        if (article.author_id !== parseInt(author_id)) {
+            return res.status(403).json({ error: 'Вы можете удалять только свои статьи!' });
+        }
+
+        // 3. Удаляем из базы данных
+        await db.query('DELETE FROM articles WHERE id = $1', [articleId]);
+
+        res.status(200).json({ message: 'Статья успешно удалена!' });
+    } catch (error) {
+        console.error("Ошибка при удалении:", error);
+        res.status(500).json({ error: 'Не удалось удалить статью.' });
+    }
+});
+
+
 // --- ЗАПУСК СЕРВЕРА ---
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
