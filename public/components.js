@@ -198,7 +198,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
     }
-    LoadArticles();
+    loadArticles();
 
     // --- МЕНЮ (Гость или Путешественник) ---
     const currentUserString = localStorage.getItem('demiurgeUser');
