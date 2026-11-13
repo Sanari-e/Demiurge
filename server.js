@@ -51,18 +51,23 @@ app.post('/api/register', async (req, res) => {
 app.post('/api/login', async (req, res) => {
     try {
         const { email, password } = req.body;
+
         // 1. Ищем пользователя в PostgreSQL
         const result = await db.query('SELECT * FROM users WHERE email = $1', [email]);
         const user = result.rows[0]; // 👈 ВАЖНО: данные теперь в .rows[0] (раньше было .get())
+
         // Если не нашли — выдаем ошибку
         if (!user) {
             return res.status(400).json({ error: 'Путешественник с таким email не найден!' });
         }
+
         // 2. Сравниваем пароль
         const isPasswordValid = await bcrypt.compare(password, user.password);
+        
         if (!isPasswordValid) {
             return res.status(400).json({ error: 'Неверный пароль!' });
         }
+
         // 3. Отправляем данные пользователя
         res.status(200).json({ 
             message: 'С возвращением!', 
@@ -73,6 +78,7 @@ app.post('/api/login', async (req, res) => {
                 role: user.role 
             } 
         });
+
     } catch (error) {
         console.error(error); // Если упадет — мы увидим это в логах Railway
         res.status(500).json({ error: 'Ошибка при входе...' });
@@ -105,6 +111,32 @@ app.get('/api/articles', async (req, res) => {
     res.status(200).json(result.rows); // Отправляем массив из .rows
   } catch (error) { /* ... */ }
 });
+
+
+app.get('/api/articles/:id', async (req, res) => {
+    try {
+        const articleId = req.params.id;
+        
+        const result = await db.query(`
+            SELECT articles.*, users.username as author_name 
+            FROM articles 
+            LEFT JOIN users ON articles.author_id = users.id 
+            WHERE articles.id = $1
+        `, [articleId]);
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Статья не найдена' });
+        }
+
+        res.status(200).json(result.rows[0]);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Не удалось загрузить статью.' });
+    }
+});
+
+
+
 
 // --- ЗАПУСК СЕРВЕРА ---
 const PORT = process.env.PORT || 3000;
