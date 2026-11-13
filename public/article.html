@@ -113,6 +113,49 @@
         </div>
     </div>
 
+ <div class="text-center mb-3" id="authorActions" style="display: none;">
+        <button id="editArticleBtn" class="btn btn-warning me-2">✏️ Редактировать</button>
+        <button id="deleteArticleBtn" class="btn btn-danger">🗑️ Удалить</button>
+    </div>
+
+
+ <div class="modal fade" id="editArticleModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content" style="background-color: #fce4d6; font-family: 'Lora', serif;">
+          <div class="modal-header">
+            <h5 class="modal-title" style="font-family: 'MedievalSharp'; font-size: 200%;">Редактирование записи</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+          </div>
+          <div class="modal-body">
+            <form id="editArticleForm">
+              <div class="mb-3">
+                <label for="editTitle" class="form-label">Заголовок</label>
+                <input type="text" class="form-control" id="editTitle" required>
+              </div>
+              <div class="mb-3">
+                <label for="editContent" class="form-label">Текст статьи</label>
+                <textarea class="form-control" id="editContent" rows="5" required></textarea>
+              </div>
+              <div class="mb-3">
+                <label for="editImage" class="form-label">Новое изображение (если нужно заменить)</label>
+                <input type="file" class="form-control" id="editImage" accept="image/*">
+              </div>
+              <div class="modal-footer px-0 pb-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                <button type="submit" class="btn btn-primary" style="background-color: rgb(210, 162, 255); border: none;">Сохранить изменения</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+
+
+
+
+
     <!-- Скрипт для загрузки статьи -->
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
@@ -161,6 +204,97 @@
                 document.getElementById('articleContent').innerHTML = '<h2 class="text-center text-danger">Ошибка при загрузке статьи</h2>';
             }
         });
+
+
+        const currentUserString = localStorage.getItem('demiurgeUser');
+                if (currentUserString) {
+                    const currentUser = JSON.parse(currentUserString);
+                    
+                    // Если ID пользователя совпадает с author_id статьи
+                    if (currentUser.id === article.author_id) {
+                        
+                        // 1. Показываем блок с кнопками
+                        document.getElementById('authorActions').style.display = 'block';
+
+                        // ==========================================
+                        // ЛОГИКА РЕДАКТИРОВАНИЯ
+                        // ==========================================
+                        // Заполняем форму редактирования текущими данными статьи
+                        document.getElementById('editTitle').value = article.title;
+                        document.getElementById('editContent').value = article.content;
+
+                        // Открытие модалки редактирования
+                        document.getElementById('editArticleBtn').addEventListener('click', () => {
+                            const modal = new bootstrap.Modal(document.getElementById('editArticleModal'));
+                            modal.show();
+                        });
+
+                        // Отправка формы редактирования
+                        document.getElementById('editArticleForm').addEventListener('submit', async (e) => {
+                            e.preventDefault();
+                            
+                            const newTitle = document.getElementById('editTitle').value;
+                            const newContent = document.getElementById('editContent').value;
+                            const newImage = document.getElementById('editImage').files[0];
+
+                            const formData = new FormData();
+                            formData.append('title', newTitle);
+                            formData.append('content', newContent);
+                            formData.append('author_id', currentUser.id); // Для проверки на сервере
+
+                            if (newImage) formData.append('image', newImage);
+
+                            try {
+                                const updateResponse = await fetch(`/api/articles/${article.id}`, {
+                                    method: 'PUT',
+                                    body: formData
+                                });
+
+                                const updateData = await updateResponse.json();
+
+                                if (updateResponse.ok) {
+                                    alert('🎉 ' + updateData.message);
+                                    location.reload(); 
+                                } else {
+                                    alert('⚠️ ' + updateData.error);
+                                }
+                            } catch (error) {
+                                console.error(error);
+                                alert('Ошибка сервера при обновлении!');
+                            }
+                        });
+
+                        // ==========================================
+                        // ЛОГИКА УДАЛЕНИЯ
+                        // ==========================================
+                        document.getElementById('deleteArticleBtn').addEventListener('click', async () => {
+                            // Окно подтверждения, чтобы не удалить случайно
+                            const isConfirmed = confirm('Вы уверены, что хотите удалить эту статью? Это действие нельзя отменить.');
+                            
+                            if (isConfirmed) {
+                                try {
+                                    // Передаем ID пользователя в URL для проверки прав на сервере
+                                    const deleteResponse = await fetch(`/api/articles/${article.id}?author_id=${currentUser.id}`, {
+                                        method: 'DELETE'
+                                    });
+
+                                    const deleteData = await deleteResponse.json();
+
+                                    if (deleteResponse.ok) {
+                                        alert('🗑️ ' + deleteData.message);
+                                        // Перенаправляем обратно в Архив
+                                        window.location.href = 'Archive.html';
+                                    } else {
+                                        alert('⚠️ ' + deleteData.error);
+                                    }
+                                } catch (error) {
+                                    console.error(error);
+                                    alert('Ошибка сервера при удалении!');
+                                }
+                            }
+                        });
+                    }
+                }
     </script>
 
 
