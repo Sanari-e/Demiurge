@@ -33,101 +33,56 @@ app.get('/', (req, res) => {
 
 // 2. Регистрация
 app.post('/api/register', async (req, res) => {
-    try {
-        const { username, email, password } = req.body;
-
-        const existingUser = db.prepare('SELECT * FROM users WHERE email = ?').get(email);
-        if (existingUser) {
-            return res.status(400).json({ error: 'Этот email уже занят другим путешественником!' });
-        }
-
-        const hashedPassword = await bcrypt.hash(password, 10);
-
-        const insertUser = db.prepare('INSERT INTO users (username, email, password) VALUES (?, ?, ?)');
-        insertUser.run(username, email, hashedPassword);
-
-        res.status(201).json({ message: 'Путешественник успешно создан!' });
-
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Что-то пошло не так на сервере...' });
+  try {
+    const { username, email, password } = req.body;
+    // Проверка на существующего пользователя
+    const existing = await db.query('SELECT * FROM users WHERE email = $1', [email]);
+    if (existing.rows.length > 0) {
+      return res.status(400).json({ error: 'Этот email уже занят!' });
     }
+    const hashedPassword = await bcrypt.hash(password, 10);
+    // Вставка нового пользователя (обратите внимание на $1, $2, $3)
+    await db.query('INSERT INTO users (username, email, password) VALUES ($1, $2, $3)', [username, email, hashedPassword]);
+    res.status(201).json({ message: 'Путешественник успешно создан!' });
+  } catch (error) { /* ... */ }
 });
 
-// 3. Вход
+// --- ВХОД ---
 app.post('/api/login', async (req, res) => {
-    try {
-        const { email, password } = req.body;
-
-        const user = db.prepare('SELECT * FROM users WHERE email = ?').get(email);
-        
-        if (!user) {
-            return res.status(400).json({ error: 'Путешественник с таким email не найден!' });
-        }
-
-        const isPasswordValid = await bcrypt.compare(password, user.password);
-        
-        if (!isPasswordValid) {
-            return res.status(400).json({ error: 'Неверный пароль!' });
-        }
-
-        res.status(200).json({ 
-            message: 'С возвращением!', 
-            user: { 
-                id: user.id, 
-                username: user.username, 
-                email: user.email, 
-                role: user.role 
-            } 
-        });
-
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Ошибка при входе...' });
-    }
-}); // 👈 ВОТ ЗДЕСЬ МЫ ПРАВИЛЬНО ЗАКРЫЛИ МАРШРУТ ВХОДА!
-
-// 4. Создание статьи с картинкой
-app.post('/api/articles', upload.single('image'), (req, res) => {
-    try {
-        const { title, content, author_id } = req.body;
-        
-        let imageUrl = null;
-        if (req.file) {
-            imageUrl = '/uploads/' + req.file.filename;
-        }
-
-        if (!title || !content) {
-            return res.status(400).json({ error: 'Заголовок и текст статьи обязательны!' });
-        }
-
-        const insertArticle = db.prepare('INSERT INTO articles (title, content, image_url, author_id) VALUES (?, ?, ?, ?)');
-        const info = insertArticle.run(title, content, imageUrl, author_id);
-
-        res.status(201).json({ message: 'Статья с картинкой добавлена!', articleId: info.lastInsertRowid });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Не удалось сохранить статью.' });
-    }
+  try {
+    const { email, password } = req.body;
+    const result = await db.query('SELECT * FROM users WHERE email = $1', [email]);
+    const user = result.rows[0]; // Данные теперь в .rows[0]
+    // ... (остальная логика проверки пароля и отправки ответа)
+  } catch (error) { /* ... */ }
 });
 
-// 5. Получение всех статей
-app.get('/api/articles', (req, res) => {
-    try {
-        const articles = db.prepare(`
-            SELECT articles.*, users.username as author_name 
-            FROM articles 
-            LEFT JOIN users ON articles.author_id = users.id 
-            ORDER BY articles.created_at DESC
-        `).all();
-
-        res.status(200).json(articles);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Не удалось загрузить статьи.' });
-    }
+// --- СОЗДАНИЕ СТАТЬИ ---
+app.post('/api/articles', upload.single('image'), async (req, res) => {
+  try {
+    const { title, content, author_id } = req.body;
+    let imageUrl = req.file ? '/uploads/' + req.file.filename : null;
+    
+    const result = await db.query(
+      'INSERT INTO articles (title, content, image_url, author_id) VALUES ($1, $2, $3, $4) RETURNING id',
+      [title, content, imageUrl, author_id]
+    );
+    res.status(201).json({ message: 'Статья добавлена!', articleId: result.rows[0].id });
+  } catch (error) { /* ... */ }
 });
 
+// --- ПОЛУЧЕНИЕ ВСЕХ СТАТЕЙ ---
+app.get('/api/articles', async (req, res) => {
+  try {
+    const result = await db.query(`
+      SELECT articles.*, users.username as author_name 
+      FROM articles 
+      LEFT JOIN users ON articles.author_id = users.id 
+      ORDER BY articles.created_at DESC
+    `);
+    res.status(200).json(result.rows); // Отправляем массив из .rows
+  } catch (error) { /* ... */ }
+});
 
 // --- ЗАПУСК СЕРВЕРА ---
 const PORT = process.env.PORT || 3000;
