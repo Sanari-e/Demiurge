@@ -243,6 +243,7 @@ border-radius: 8px;
 
 
 #editArticleBtn{
+    width: fit-content !important;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -250,6 +251,7 @@ border-radius: 8px;
     padding: 10px 20px;
 background-color: #d5a9ff !important;
 color: #3c1b5f !important;
+border-color: #3c1b5f !important;
 }
 #editArticleBtn:hover{
 background-color: #ad7fd8 !important;
@@ -258,6 +260,7 @@ color: #281141 !important;
 
 
 #deleteArticleBtn{
+    width: fit-content !important;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -271,13 +274,17 @@ color: #8a0707 !important;
     color: #5f0505 !important;
 }
 
+
+
 #returnArchiveBtn{
 background-color: #5e2897 !important;
 color: #fff !important;
 }
-#returnArchiveBtn{
+#returnArchiveBtn:hover{
     background-color: #4e1f80 !important;
 }
+
+
 
 #authorActions{
     display: flex;
@@ -285,10 +292,4 @@ color: #fff !important;
     align-items: center;
     gap: 20px;
     flex-wrap: wrap;
-}
-
-#autorActions img{
-    width: 30px;
-    height: 30px;
-    object-fit: contain;
 }
