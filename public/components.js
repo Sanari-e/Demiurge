@@ -268,7 +268,7 @@ function updateArchiveDisplay(articlesArray) {
                 <p style="font-size: 14px; color: #555;">${article.content.substring(0, 100)}...</p>
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
                     <small style="color: #888;">Автор: ${article.author_name || 'Неизвестен'}</small>
-                     <a href="article.html?id=${article.id}" class="btn btn-sm btn-primary" style="background-color: #d5a9ff; border: none; color: #2b1140; text-decoration: none;">Читать</a>
+                     <a href="article.html?id=${article.id}" class="btn btn-sm btn-primary" style="background-color: #d5a9ff; border: none; color: #2b1140; text-decoration: none;">Читать>>></a>
                 </div>
             `;
             
