@@ -189,6 +189,9 @@ border-radius: 8px;
 
 
 #articleModalBtn{
+    display: flex;
+    justify-content: center;
+    align-items: center;
     font-size: 150%;
     width: 7%;
     height: 5%;
@@ -211,6 +214,7 @@ border-radius: 8px;
         margin-bottom: 40px;
         box-shadow: 0 10px 20px rgba(0,0,0,0.1);
         width: 75%;
+        justify-self: center;
     }
     .article-title {
         font-family: 'MedievalSharp', serif;
@@ -238,19 +242,47 @@ border-radius: 8px;
     }
 
 
-.editArticleBtn{
-background-color: #d5a9ff;
-color: #3c1b5f;
+#editArticleBtn{
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 10px 20px;
+background-color: #d5a9ff !important;
+color: #3c1b5f !important;
+}
+#editArticleBtn:hover{
+background-color: #ad7fd8 !important;
+color: #281141 !important;
 }
 
 
-.deleteArticleBtn{
-background-color: rgb(255, 79, 79);
-color: rgb(138, 7, 7);
+#deleteArticleBtn{
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 10px 20px;
+background-color: #ff4f4f !important;
+color: #8a0707 !important;
+}
+#deleteArticleBtn:hover{
+    background-color: #db3b3b !important;
+    color: #5f0505 !important;
 }
 
+#returnArchiveBtn{
+background-color: #5e2897 !important;
+color: #fff !important;
+}
+#returnArchiveBtn{
+    background-color: #4e1f80 !important;
+}
 
-.returnArchiveBtn{
-background-color: #5e2897;
-color: #fff;
+#authorActions{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
 }
