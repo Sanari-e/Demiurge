@@ -1,9 +1,14 @@
+require('dotenv').config(); // Читаем .env
 const express = require('express');
 const cors = require('cors');
 const multer = require('multer'); 
 const path = require('path');
 const bcrypt = require('bcryptjs'); 
 const db = require('./database');  
+const s3 = require('./storage'); // Наш файл с настройками
+
+const { PutObjectCommand, GetObjectCommand, DeleteObjectCommand } = require('@aws-sdk/client-s3');
+const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
 
 const app = express();
 app.use(cors());
@@ -12,15 +17,7 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // --- НАСТРОЙКА MULTER ---
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, path.join(__dirname, 'public', 'uploads')); 
-  },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, uniqueSuffix + path.extname(file.originalname));
-  }
-});
+const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
 
@@ -87,121 +84,200 @@ app.post('/api/login', async (req, res) => {
 
 // --- СОЗДАНИЕ СТАТЬИ ---
 app.post('/api/articles', upload.single('image'), async (req, res) => {
-  try {
-    const { title, content, author_id } = req.body;
-    let imageUrl = req.file ? '/uploads/' + req.file.filename : null;
-    
-    const result = await db.query(
-      'INSERT INTO articles (title, content, image_url, author_id) VALUES ($1, $2, $3, $4) RETURNING id',
-      [title, content, imageUrl, author_id]
-    );
-    res.status(201).json({ message: 'Статья добавлена!', articleId: result.rows[0].id });
-  } catch (error) { /* ... */ }
+    try {
+        const { title, content, author_id } = req.body;
+        let imageUrl = null;
+
+        // Загружаем картинку в Filebase
+        if (req.file) {
+            const fileKey = `maps/${Date.now()}_${req.file.originalname}`;
+            const command = new PutObjectCommand({
+                Bucket: process.env.FILEBASE_BUCKET_NAME,
+                Key: fileKey,
+                Body: req.file.buffer,
+                ContentType: req.file.mimetype,
+            });
+            await s3.send(command);
+            imageUrl = fileKey; // Сохраняем в БД только имя файла
+        }
+
+        if (!title || !content) {
+            return res.status(400).json({ error: 'Заголовок и текст статьи обязательны!' });
+        }
+
+        // (Здесь предполагается, что ты уже перешел на PostgreSQL. Если SQLite - используй свой старый код)
+        const insertArticle = db.prepare('INSERT INTO articles (title, content, image_url, author_id) VALUES (?, ?, ?, ?)');
+        const info = insertArticle.run(title, content, imageUrl, author_id);
+
+        res.status(201).json({ message: 'Статья добавлена!', articleId: info.lastInsertRowid });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Не удалось сохранить статью.' });
+    }
 });
 
 // --- ПОЛУЧЕНИЕ ВСЕХ СТАТЕЙ ---
 app.get('/api/articles', async (req, res) => {
-  try {
-    const result = await db.query(`
-      SELECT articles.*, users.username as author_name 
-      FROM articles 
-      LEFT JOIN users ON articles.author_id = users.id 
-      ORDER BY articles.created_at DESC
-    `);
-    res.status(200).json(result.rows); // Отправляем массив из .rows
-  } catch (error) { /* ... */ }
+    try {
+        // Получаем статьи из базы (код зависит от того, SQLite у тебя или PostgreSQL)
+        // Для PostgreSQL:
+        const result = await db.query(`
+            SELECT articles.*, users.username as author_name 
+            FROM articles 
+            LEFT JOIN users ON articles.author_id = users.id 
+            ORDER BY articles.created_at DESC
+        `);
+        
+        const articles = result.rows;
+
+        // Генерируем временные ссылки на картинки
+        for (let article of articles) {
+            if (article.image_url) {
+                const command = new GetObjectCommand({
+                    Bucket: process.env.FILEBASE_BUCKET_NAME,
+                    Key: article.image_url,
+                });
+                // Ссылка будет жить 1 час (3600 секунд)
+                article.image_url = await getSignedUrl(s3, command, { expiresIn: 3600 });
+            }
+        }
+
+        res.status(200).json(articles);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Не удалось загрузить статьи.' });
+    }
 });
 
-
+// Получение ОДНОЙ статьи по ID
 app.get('/api/articles/:id', async (req, res) => {
     try {
         const articleId = req.params.id;
-        
+        // В PostgreSQL (или SQLite, если используешь его)
         const result = await db.query(`
             SELECT articles.*, users.username as author_name 
             FROM articles 
             LEFT JOIN users ON articles.author_id = users.id 
             WHERE articles.id = $1
         `, [articleId]);
+        
+        const article = result.rows[0];
 
-        if (result.rows.length === 0) {
+        if (!article) {
             return res.status(404).json({ error: 'Статья не найдена' });
         }
 
-        res.status(200).json(result.rows[0]);
+        // Генерируем ссылку на картинку, если она есть
+        if (article.image_url) {
+            const command = new GetObjectCommand({
+                Bucket: process.env.FILEBASE_BUCKET_NAME,
+                Key: article.image_url,
+            });
+            article.image_url = await getSignedUrl(s3, command, { expiresIn: 3600 });
+        }
+
+        res.status(200).json(article);
     } catch (error) {
         console.error(error);
-        res.status(500).json({ error: 'Не удалось загрузить статью.' });
+        res.status(500).json({ error: 'Ошибка при получении статьи.' });
     }
 });
 
 
 
 
+// Редактирование статьи
 app.put('/api/articles/:id', upload.single('image'), async (req, res) => {
     try {
         const articleId = req.params.id;
-        const { title, content, author_id } = req.body;
-        
-        // 1. Проверяем, существует ли статья и принадлежит ли она этому автору
-        const checkArticle = await db.query('SELECT * FROM articles WHERE id = $1', [articleId]);
-        const article = checkArticle.rows[0];
+        const { title, content, author_id } = req.body; // Ловим author_id с фронта
 
-        if (!article) {
+        // 1. Получаем статью
+        const result = await db.query('SELECT * FROM articles WHERE id = $1', [articleId]);
+        const currentArticle = result.rows[0];
+
+        if (!currentArticle) {
             return res.status(404).json({ error: 'Статья не найдена' });
         }
 
-        // Проверка прав (если author_id не совпадает, запрещаем)
-        if (article.author_id !== parseInt(author_id)) {
-            return res.status(403).json({ error: 'Вы можете редактировать только свои статьи!' });
+        // ПРОВЕРКА ПРАВ: удалять/менять может только автор
+        if (currentArticle.author_id != author_id) {
+            return res.status(403).json({ error: 'У вас нет прав на редактирование этой статьи!' });
         }
 
-        // 2. Формируем путь к картинке (если загружена новая, берем её, иначе оставляем старую)
-        let imageUrl = article.image_url;
+        let newImageUrl = currentArticle.image_url;
+
+        // 2. Если загружена новая картинка
         if (req.file) {
-            imageUrl = '/uploads/' + req.file.filename;
+            const fileKey = `maps/${Date.now()}_${req.file.originalname}`;
+            const uploadCommand = new PutObjectCommand({
+                Bucket: process.env.FILEBASE_BUCKET_NAME,
+                Key: fileKey,
+                Body: req.file.buffer,
+                ContentType: req.file.mimetype,
+            });
+            await s3.send(uploadCommand);
+            newImageUrl = fileKey;
+
+            // Удаляем старую картинку из облака, если она была
+            if (currentArticle.image_url) {
+                const deleteCommand = new DeleteObjectCommand({
+                    Bucket: process.env.FILEBASE_BUCKET_NAME,
+                    Key: currentArticle.image_url,
+                });
+                await s3.send(deleteCommand);
+            }
         }
 
-        // 3. Обновляем данные в базе
+        // 3. Обновляем в базе
         await db.query(
             'UPDATE articles SET title = $1, content = $2, image_url = $3 WHERE id = $4',
-            [title, content, imageUrl, articleId]
+            [title, content, newImageUrl, articleId]
         );
 
         res.status(200).json({ message: 'Статья успешно обновлена!' });
     } catch (error) {
-        console.error("Ошибка при обновлении:", error);
-        res.status(500).json({ error: 'Не удалось обновить статью.' });
+        console.error(error);
+        res.status(500).json({ error: 'Ошибка при редактировании.' });
     }
 });
 
 
-
+// Удаление статьи
 app.delete('/api/articles/:id', async (req, res) => {
     try {
         const articleId = req.params.id;
-        const { author_id } = req.query; // ID пользователя передадим в строке запроса (URL)
+        const author_id = req.query.author_id; // Ловим ID из ссылки
 
-        // 1. Проверяем, существует ли статья
-        const checkArticle = await db.query('SELECT * FROM articles WHERE id = $1', [articleId]);
-        const article = checkArticle.rows[0];
+        // 1. Находим статью
+        const result = await db.query('SELECT * FROM articles WHERE id = $1', [articleId]);
+        const article = result.rows[0];
 
         if (!article) {
             return res.status(404).json({ error: 'Статья не найдена' });
         }
 
-        // 2. Проверка прав (удалять может только автор)
-        if (article.author_id !== parseInt(author_id)) {
-            return res.status(403).json({ error: 'Вы можете удалять только свои статьи!' });
+        // ПРОВЕРКА ПРАВ
+        if (article.author_id != author_id) {
+            return res.status(403).json({ error: 'У вас нет прав на удаление этой статьи!' });
         }
 
-        // 3. Удаляем из базы данных
+        // 2. Удаляем картинку из Filebase
+        if (article.image_url) {
+            const deleteCommand = new DeleteObjectCommand({
+                Bucket: process.env.FILEBASE_BUCKET_NAME,
+                Key: article.image_url,
+            });
+            await s3.send(deleteCommand);
+        }
+
+        // 3. Удаляем из базы
         await db.query('DELETE FROM articles WHERE id = $1', [articleId]);
 
-        res.status(200).json({ message: 'Статья успешно удалена!' });
+        res.status(200).json({ message: 'Статья и её изображение удалены.' });
     } catch (error) {
-        console.error("Ошибка при удалении:", error);
-        res.status(500).json({ error: 'Не удалось удалить статью.' });
+        console.error(error);
+        res.status(500).json({ error: 'Ошибка при удалении.' });
     }
 });
 
