@@ -124,8 +124,9 @@ border-radius: 8px;
 }
 
 .active{
-    background-color: transparent !important;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    background-color: #dcb6ff;
+    box-shadow: 6px 4px 6px rgba(214, 42, 128, 0.1);
+    border-radius: 25px;
 }
 
 
