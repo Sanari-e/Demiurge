@@ -88,7 +88,8 @@ app.post('/api/articles', upload.single('image'), async (req, res) => {
         let imageUrlKey = null; // Здесь будет храниться только имя файла
 
         if (req.file) {
-            const fileKey = `maps/${Date.now()}_${req.file.originalname}`;
+            const fileExtension = path.extname(req.file.originalname); // берет только .png или .jpg
+            const fileKey = `maps/${Date.now()}${fileExtension}`;
             const command = new PutObjectCommand({
                 Bucket: process.env.CLOUD_RU_BUCKET_NAME,
                 Key: fileKey,
@@ -253,7 +254,7 @@ app.delete('/api/articles/:id', async (req, res) => {
         // Удаляем из базы данных
         await db.query('DELETE FROM articles WHERE id = $1', [articleId]);
 
-        res.status(200).json({ message: 'Статья и её изображение удалены.' });
+        res.status(200).json({ message: 'Статья удалена.' });
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Ошибка при удалении.' });
