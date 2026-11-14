@@ -70,11 +70,20 @@ a, a:link, a:visited, a:hover, a:active, a:focus {
 }
 
 #knopkaaa {
+    
+    max-width: 85%; 
+    justify-self: center;
     transition: all 0.3s ease-in-out;
 }
 
 #knopkaaa:hover {
     transform: scale(1.05);
+}
+
+
+.card-title{
+    font-size: clamp(1.2rem, 4vw, 2.5rem);
+    word-wrap: break-word;
 }
 
 
