@@ -111,6 +111,9 @@ a, a:link, a:visited, a:hover, a:active, a:focus {
     background-color: #d2a2ff !important;
     color: #fff;
     padding-left: 15px;
+}
+.nav-item{
+    margin-top: 5px;
 }}
 
 .archiveContent{
