@@ -110,6 +110,7 @@ a, a:link, a:visited, a:hover, a:active, a:focus {
     background: transparent !important;
     background-color: #d2a2ff !important;
     color: #fff;
+    padding-left: 15px;
 }}
 
 .archiveContent{
