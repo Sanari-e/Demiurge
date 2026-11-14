@@ -244,6 +244,7 @@ border-radius: 8px;
 
 #editArticleBtn{
     width: fit-content !important;
+    max-width: 250px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -261,6 +262,7 @@ color: #281141 !important;
 
 #deleteArticleBtn{
     width: fit-content !important;
+    max-width: 250px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -279,6 +281,7 @@ color: #8a0707 !important;
 #returnArchiveBtn{
 background-color: #5e2897 !important;
 color: #fff !important;
+border-color: #19003a !important;
 }
 #returnArchiveBtn:hover{
     background-color: #4e1f80 !important;
