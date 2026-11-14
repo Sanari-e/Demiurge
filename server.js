@@ -7,8 +7,8 @@ const bcrypt = require('bcryptjs');
 const db = require('./database');  
 const s3 = require('./storage');
 
-const { PutObjectCommand, GetObjectCommand, DeleteObjectCommand } = require('@aws-sdk/client-s3');
-const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
+// Импортируем только то, что нужно для Cloud.ru
+const { PutObjectCommand, DeleteObjectCommand } = require('@aws-sdk/client-s3');
 
 const app = express();
 app.use(cors());
@@ -16,7 +16,7 @@ app.use(express.json());
 
 app.use(express.static(path.join(__dirname, 'public')));
 
-// --- НАСТРОЙКА MULTER ---
+// --- НАСТРОЙКА MULTER (Храним файл в памяти) ---
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
@@ -32,15 +32,12 @@ app.post('/api/register', async (req, res) => {
   try {
     const { username, email, password } = req.body;
     
-    // Проверка на существующего пользователя
     const existing = await db.query('SELECT * FROM users WHERE email = $1', [email]);
     if (existing.rows.length > 0) {
       return res.status(400).json({ error: 'Этот email уже занят!' });
     }
     
     const hashedPassword = await bcrypt.hash(password, 10);
-    
-    // Вставка нового пользователя
     await db.query('INSERT INTO users (username, email, password) VALUES ($1, $2, $3)', [username, email, hashedPassword]);
     
     res.status(201).json({ message: 'Путешественник успешно создан!' });
@@ -55,7 +52,6 @@ app.post('/api/login', async (req, res) => {
     try {
         const { email, password } = req.body;
 
-        // 1. Ищем пользователя в PostgreSQL
         const result = await db.query('SELECT * FROM users WHERE email = $1', [email]);
         const user = result.rows[0]; 
 
@@ -63,14 +59,12 @@ app.post('/api/login', async (req, res) => {
             return res.status(400).json({ error: 'Путешественник с таким email не найден!' });
         }
 
-        // 2. Сравниваем пароль
         const isPasswordValid = await bcrypt.compare(password, user.password);
         
         if (!isPasswordValid) {
             return res.status(400).json({ error: 'Неверный пароль!' });
         }
 
-        // 3. Отправляем данные пользователя
         res.status(200).json({ 
             message: 'С возвращением!', 
             user: { 
@@ -91,34 +85,30 @@ app.post('/api/login', async (req, res) => {
 app.post('/api/articles', upload.single('image'), async (req, res) => {
     try {
         const { title, content, author_id } = req.body;
-        let imageUrl = null;
+        let imageUrlKey = null; // Здесь будет храниться только имя файла
 
-        // Загружаем картинку в Filebase
         if (req.file) {
             const fileKey = `maps/${Date.now()}_${req.file.originalname}`;
             const command = new PutObjectCommand({
-                Bucket: process.env.FILEBASE_BUCKET_NAME,
+                Bucket: process.env.CLOUD_RU_BUCKET_NAME,
                 Key: fileKey,
                 Body: req.file.buffer,
                 ContentType: req.file.mimetype,
             });
             await s3.send(command);
-            imageUrl = fileKey; 
+            imageUrlKey = fileKey; // Сохраняем в БД ТОЛЬКО ключ
         }
 
         if (!title || !content) {
             return res.status(400).json({ error: 'Заголовок и текст статьи обязательны!' });
         }
 
-        // 👇 ИСПРАВЛЕННЫЙ КОД ДЛЯ POSTGRESQL 👇
         const insertResult = await db.query(
             'INSERT INTO articles (title, content, image_url, author_id) VALUES ($1, $2, $3, $4) RETURNING id',
-            [title, content, imageUrl, author_id]
+            [title, content, imageUrlKey, author_id]
         );
         
-        const newArticleId = insertResult.rows[0].id;
-
-        res.status(201).json({ message: 'Статья добавлена!', articleId: newArticleId });
+        res.status(201).json({ message: 'Статья добавлена!', articleId: insertResult.rows[0].id });
     } catch (error) {
         console.error("Ошибка при создании:", error);
         res.status(500).json({ error: 'Не удалось сохранить статью.' });
@@ -137,14 +127,11 @@ app.get('/api/articles', async (req, res) => {
         
         const articles = result.rows;
 
-        // Генерируем временные ссылки на картинки
+        // Проходимся по статьям и "собираем" полную ссылку для картинок
         for (let article of articles) {
             if (article.image_url) {
-                const command = new GetObjectCommand({
-                    Bucket: process.env.FILEBASE_BUCKET_NAME,
-                    Key: article.image_url,
-                });
-                article.image_url = await getSignedUrl(s3, command, { expiresIn: 3600 });
+                // Формируем ссылку: https://s3.cloud.ru/имя-бакета/ключ
+                article.image_url = `${process.env.CLOUD_RU_ENDPOINT}/${process.env.CLOUD_RU_BUCKET_NAME}/${article.image_url}`;
             }
         }
 
@@ -172,12 +159,9 @@ app.get('/api/articles/:id', async (req, res) => {
             return res.status(404).json({ error: 'Статья не найдена' });
         }
 
+        // Собираем полную ссылку на картинку
         if (article.image_url) {
-            const command = new GetObjectCommand({
-                Bucket: process.env.FILEBASE_BUCKET_NAME,
-                Key: article.image_url,
-            });
-            article.image_url = await getSignedUrl(s3, command, { expiresIn: 3600 });
+            article.image_url = `${process.env.CLOUD_RU_ENDPOINT}/${process.env.CLOUD_RU_BUCKET_NAME}/${article.image_url}`;
         }
 
         res.status(200).json(article);
@@ -201,34 +185,36 @@ app.put('/api/articles/:id', upload.single('image'), async (req, res) => {
         }
 
         if (currentArticle.author_id != author_id) {
-            return res.status(403).json({ error: 'У вас нет прав на редактирование этой статьи!' });
+            return res.status(403).json({ error: 'У вас нет прав на редактирование!' });
         }
 
-        let newImageUrl = currentArticle.image_url;
+        let newImageUrlKey = currentArticle.image_url; // По умолчанию оставляем старую картинку
 
         if (req.file) {
             const fileKey = `maps/${Date.now()}_${req.file.originalname}`;
             const uploadCommand = new PutObjectCommand({
-                Bucket: process.env.FILEBASE_BUCKET_NAME,
+                Bucket: process.env.CLOUD_RU_BUCKET_NAME,
                 Key: fileKey,
                 Body: req.file.buffer,
                 ContentType: req.file.mimetype,
             });
             await s3.send(uploadCommand);
-            newImageUrl = fileKey;
+            newImageUrlKey = fileKey; // Запоминаем ключ новой картинки
 
+            // Удаляем старую картинку из Cloud.ru (если она была)
             if (currentArticle.image_url) {
                 const deleteCommand = new DeleteObjectCommand({
-                    Bucket: process.env.FILEBASE_BUCKET_NAME,
+                    Bucket: process.env.CLOUD_RU_BUCKET_NAME,
                     Key: currentArticle.image_url,
                 });
                 await s3.send(deleteCommand);
             }
         }
 
+        // Обновляем базу данных. В колонку image_url пишем ТОЛЬКО ключ.
         await db.query(
             'UPDATE articles SET title = $1, content = $2, image_url = $3 WHERE id = $4',
-            [title, content, newImageUrl, articleId]
+            [title, content, newImageUrlKey, articleId]
         );
 
         res.status(200).json({ message: 'Статья успешно обновлена!' });
@@ -252,17 +238,19 @@ app.delete('/api/articles/:id', async (req, res) => {
         }
 
         if (article.author_id != author_id) {
-            return res.status(403).json({ error: 'У вас нет прав на удаление этой статьи!' });
+            return res.status(403).json({ error: 'У вас нет прав на удаление!' });
         }
 
+        // Удаляем картинку из Cloud.ru
         if (article.image_url) {
             const deleteCommand = new DeleteObjectCommand({
-                Bucket: process.env.FILEBASE_BUCKET_NAME,
+                Bucket: process.env.CLOUD_RU_BUCKET_NAME,
                 Key: article.image_url,
             });
             await s3.send(deleteCommand);
         }
 
+        // Удаляем из базы данных
         await db.query('DELETE FROM articles WHERE id = $1', [articleId]);
 
         res.status(200).json({ message: 'Статья и её изображение удалены.' });
