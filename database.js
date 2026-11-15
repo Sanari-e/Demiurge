@@ -30,6 +30,17 @@ async function initDb() {
   console.log("Таблицы проверены/созданы.");
 }
 
+await pool.query(`
+  CREATE TABLE IF NOT EXISTS maps (
+    id SERIAL PRIMARY KEY,
+    title TEXT, -- Название может быть пустым (необязательно)
+    description TEXT, -- Описание тоже необязательно
+    image_url TEXT NOT NULL, -- Картинка ОБЯЗАТЕЛЬНА
+    author_id INTEGER REFERENCES users(id),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  );
+`);
+
 initDb();
 
 module.exports = pool;
