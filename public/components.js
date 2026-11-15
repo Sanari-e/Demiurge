@@ -407,17 +407,20 @@ async function loadMaps(isPersonalPage = false) {
                 // Берем описание или ставим заглушку
                 const desc = map.description ? map.description : 'Описание этого мира пока скрыто туманом...';
                 
-                card.innerHTML = `
-                    <img src="${map.image_url}" class="map-card-img" alt="${map.title}">
-                    <div class="map-card-body">
-                        <h3 style="font-family: 'MedievalSharp'; color: #2b1140; font-size: 24px; margin-bottom: 10px;">${map.title}</h3>
-                        <p style="font-size: 14px; color: #555; flex-grow: 1;">${desc}</p>
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
-                            <small style="color: #888;">Автор: ${map.author_name || 'Неизвестен'}</small>
-                            <button class="btn btn-sm btn-primary" style="background-color: #d5a9ff; border: none; color: #2b1140;">Исследовать</button>
-                        </div>
-                    </div>
-                `;
+                const buttonText = isPersonalPage ? 'Управлять' : 'Исследовать';
+        
+        card.innerHTML = `
+            <img src="${map.image_url}" class="map-card-img" alt="${map.title}">
+            <div class="map-card-body">
+                <h3 style="font-family: 'MedievalSharp'; color: #2b1140; font-size: 24px; margin-bottom: 10px;">${map.title}</h3>
+                <p style="font-size: 14px; color: #555; flex-grow: 1;">${desc}</p>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
+                    <small style="color: #888;">Автор: ${map.author_name || 'Неизвестен'}</small>
+                    <!-- 👇 Кнопка ведет на map.html и передает ID -->
+                    <a href="map.html?id=${map.id}" class="btn btn-sm btn-primary" style="background-color: #d5a9ff; border: none; color: #2b1140; text-decoration: none;">${buttonText}</a>
+                </div>
+            </div>
+        `;
                 mapsGrid.appendChild(card);
             });
         }
