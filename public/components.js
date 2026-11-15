@@ -94,6 +94,39 @@ const articleModalHTML = `
 </div>
 `;
 
+const mapModalHTML = `
+<div class="modal fade" id="addMapModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content" style="background-color: #fce4d6; font-family: 'Lora', serif;">
+      <div class="modal-header">
+        <h5 class="modal-title" style="font-family: 'MedievalSharp'; font-size: 200%;">Создание нового мира</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+      </div>
+      <div class="modal-body">
+        <form id="mapForm">
+          <div class="mb-3">
+            <label for="mapTitle" class="form-label">Название мира (необязательно)</label>
+            <input type="text" class="form-control" id="mapTitle">
+          </div>
+          <div class="mb-3">
+            <label for="mapDescription" class="form-label">Краткое описание (необязательно)</label>
+            <textarea class="form-control" id="mapDescription" rows="3"></textarea>
+          </div>
+          <div class="mb-3">
+            <label for="mapImage" class="form-label">Изображение карты <span class="text-danger">*</span></label>
+            <input type="file" class="form-control" id="mapImage" accept="image/*" required>
+          </div>
+          <div class="modal-footer px-0 pb-0">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+            <button type="submit" class="btn btn-primary" style="background-color: rgb(210, 162, 255); border: none;">Запечатлеть мир</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
 // ==========================================
 // 2. ЛОГИКА (Всё внутри DOMContentLoaded)
 // ==========================================
@@ -102,7 +135,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // 1. Вставляем ВСЕ ТРИ модальных окна
     const modalContainer = document.getElementById('modal-container');
     if (modalContainer) {
-        modalContainer.innerHTML = registerModalHTML + loginModalHTML + articleModalHTML;
+        modalContainer.innerHTML = registerModalHTML + loginModalHTML + articleModalHTML + mapModalHTML;
     }
 
     // --- РЕГИСТРАЦИЯ ---
@@ -196,6 +229,54 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+
+    // --- СОЗДАНИЕ КАРТЫ ---
+    const mapForm = document.getElementById('mapForm');
+    if (mapForm) {
+        mapForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const title = document.getElementById('mapTitle').value;
+            const description = document.getElementById('mapDescription').value;
+            const imageFile = document.getElementById('mapImage').files[0];
+
+            if (!imageFile) {
+                alert("Пожалуйста, выберите файл карты!");
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('title', title);
+            formData.append('description', description);
+            formData.append('image', imageFile);
+
+            const userString = localStorage.getItem('demiurgeUser');
+            if (userString) {
+                const user = JSON.parse(userString);
+                formData.append('author_id', user.id);
+            } else {
+                alert("Вы должны быть авторизованы!");
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/maps', {
+                    method: 'POST',
+                    body: formData 
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    alert('🎉 ' + data.message);
+                    bootstrap.Modal.getInstance(document.getElementById('addMapModal')).hide();
+                    location.reload(); 
+                } else { alert('⚠️ ' + data.error); }
+            } catch (error) { 
+                console.error(error);
+                alert('Ошибка сервера при сохранении карты!'); 
+            }
+        });
+    }
+    
+
     // --- МЕНЮ (Гость или Путешественник) ---
     const currentUserString = localStorage.getItem('demiurgeUser');
     const guestItems = document.querySelectorAll('.menu-guest-item');
@@ -218,6 +299,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     loadArticles(); 
 });
+
+
+
 
 // ==========================================
 // 3. ФУНКЦИЯ ОТРИСОВКИ АРХИВА (Для будущего использования)
@@ -274,5 +358,70 @@ function updateArchiveDisplay(articlesArray) {
             
             articlesGrid.appendChild(card);
         });
+    }
+}
+
+
+
+
+// ==========================================
+// 4. ЛОГИКА ДЛЯ КАРТ (Атлас и Мои миры)
+// ==========================================
+async function loadMaps(isPersonalPage = false) {
+    try {
+        let url = '/api/maps';
+        
+        // Если это личная страница, добавляем фильтр по автору
+        if (isPersonalPage) {
+            const userString = localStorage.getItem('demiurgeUser');
+            if (!userString) {
+                document.getElementById('emptyStateMaps').innerHTML = '<p>Войдите в аккаунт, чтобы увидеть свои миры</p>';
+                const btn = document.getElementById('btnOpenMapModal');
+                if (btn) btn.style.display = 'none';
+                return;
+            }
+            const user = JSON.parse(userString);
+            url += `?author_id=${user.id}`; // Передаем ID в запрос
+        }
+
+        const response = await fetch(url);
+        const maps = await response.json();
+        
+        const emptyState = document.getElementById('emptyStateMaps');
+        const mapsGrid = document.getElementById('mapsGrid');
+
+        if (!emptyState || !mapsGrid) return;
+
+        if (maps.length === 0) {
+            emptyState.style.display = 'flex';
+            mapsGrid.style.display = 'none';
+        } else {
+            emptyState.style.display = 'none';
+            mapsGrid.style.display = 'grid';
+            mapsGrid.innerHTML = ''; // Очищаем перед отрисовкой
+
+            maps.forEach(map => {
+                const card = document.createElement('div');
+                card.className = 'map-card';
+                
+                // Берем описание или ставим заглушку
+                const desc = map.description ? map.description : 'Описание этого мира пока скрыто туманом...';
+                
+                card.innerHTML = `
+                    <img src="${map.image_url}" class="map-card-img" alt="${map.title}">
+                    <div class="map-card-body">
+                        <h3 style="font-family: 'MedievalSharp'; color: #2b1140; font-size: 24px; margin-bottom: 10px;">${map.title}</h3>
+                        <p style="font-size: 14px; color: #555; flex-grow: 1;">${desc}</p>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
+                            <small style="color: #888;">Автор: ${map.author_name || 'Неизвестен'}</small>
+                            <button class="btn btn-sm btn-primary" style="background-color: #d5a9ff; border: none; color: #2b1140;">Исследовать</button>
+                        </div>
+                    </div>
+                `;
+                mapsGrid.appendChild(card);
+            });
+        }
+    } catch (error) {
+        console.error("Ошибка загрузки карт:", error);
     }
 }
