@@ -105,8 +105,8 @@ const mapModalHTML = `
       <div class="modal-body">
         <form id="mapForm">
           <div class="mb-3">
-            <label for="mapTitle" class="form-label">Название мира (необязательно)</label>
-            <input type="text" class="form-control" id="mapTitle">
+            <label for="mapTitle" class="form-label">Название мира <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="mapTitle" required>
           </div>
           <div class="mb-3">
             <label for="mapDescription" class="form-label">Краткое описание (необязательно)</label>
@@ -275,7 +275,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
     }
-    
+
 
     // --- МЕНЮ (Гость или Путешественник) ---
     const currentUserString = localStorage.getItem('demiurgeUser');
