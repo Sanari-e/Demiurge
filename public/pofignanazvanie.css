@@ -110,11 +110,13 @@ a, a:link, a:visited, a:hover, a:active, a:focus {
     margin-right: 3%;
 }
 
+
 .active{
 
-    background: radial-gradient(circle at center, rgba(210, 162, 255, 1) 0%, rgba(210, 162, 255, 0.5) 50%, transparent 85%) !important;
+    background: radial-gradient(circle at center, #d2a2ff 0%, rgba(210, 162, 255, 0.5) 50%, transparent 85%) !important;
     border-radius: 25px;
 }
+
 
 @media (max-width: 991.98px) {
 .active{
@@ -126,6 +128,8 @@ a, a:link, a:visited, a:hover, a:active, a:focus {
 .nav-item{
     margin-top: 5px;
 }}
+
+
 
 .archiveContent{
     display: flex;
@@ -293,4 +297,70 @@ border-color: #19003a !important;
     align-items: center;
     gap: 20px;
     flex-wrap: wrap;
+}
+
+
+
+#emptyStateMaps{
+    height: 350px; 
+    display: flex; 
+    justify-content: center; 
+    align-items: center;
+}
+
+
+#mapsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+    width: 100%;
+}
+
+/* Карточка карты */
+.map-card {
+    background-color: #fce4d6;
+    border: 2px solid #d5a9ff;
+    border-radius: 10px;
+    overflow: hidden; /* Чтобы картинка не вылезала за скругленные края */
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    transition: transform 0.2s ease;
+}
+
+.map-card:hover {
+    transform: translateY(-5px); /* Эффект приподнимания при наведении */
+}
+
+/* Картинка внутри карточки карты */
+.map-card-img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover; /* Обрезает картинку, чтобы она заполнила блок без искажений */
+    border-bottom: 2px solid #d5a9ff;
+}
+
+/* Текстовая часть карточки */
+.map-card-body {
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+.btnOpenMapModal{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 150%;
+    width: 7%;
+    height: 5%;
+    padding-bottom: 1%;
+    padding-top: 1%;
+    padding-left: 3%;
+    padding-right: 3%;
+    background-color: #d5a9ff !important;
+    border: 2px solid #5e2897 !important;
+    border-radius: 8px;
+    margin-top: auto;
 }
