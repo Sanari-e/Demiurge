@@ -261,6 +261,81 @@ app.delete('/api/articles/:id', async (req, res) => {
     }
 });
 
+
+
+
+app.post('/api/maps', upload.single('image'), async (req, res) => {
+    try {
+        const { title, description, author_id } = req.body;
+        
+        // ПРОВЕРКА: если картинки нет, выдаем ошибку
+        if (!req.file) {
+            return res.status(400).json({ error: 'Вы должны загрузить изображение карты!' });
+        }
+
+        // Загружаем картинку в Cloud.ru
+        const fileExtension = path.extname(req.file.originalname);
+        const fileKey = `maps/${Date.now()}${fileExtension}`; // Сохраняем в папку maps/
+        
+        const command = new PutObjectCommand({
+            Bucket: process.env.CLOUD_RU_BUCKET_NAME,
+            Key: fileKey,
+            Body: req.file.buffer,
+            ContentType: req.file.mimetype,
+        });
+        await s3.send(command);
+
+        // Сохраняем в базу (если title пустой, ставим "Без названия")
+        const safeTitle = title || 'Безымянный мир';
+        
+        const insertResult = await db.query(
+            'INSERT INTO maps (title, description, image_url, author_id) VALUES ($1, $2, $3, $4) RETURNING id',
+            [safeTitle, description, fileKey, author_id]
+        );
+        
+        res.status(201).json({ message: 'Карта успешно создана!', mapId: insertResult.rows[0].id });
+    } catch (error) {
+        console.error("Ошибка при создании карты:", error);
+        res.status(500).json({ error: 'Не удалось сохранить карту.' });
+    }
+});
+
+// 10. ПОЛУЧЕНИЕ КАРТ (с фильтрацией по автору)
+app.get('/api/maps', async (req, res) => {
+    try {
+        const authorId = req.query.author_id; // Если передан ID — фильтруем
+        let query = `
+            SELECT maps.*, users.username as author_name 
+            FROM maps 
+            LEFT JOIN users ON maps.author_id = users.id 
+        `;
+        let values = [];
+
+        if (authorId) {
+            query += ` WHERE maps.author_id = $1`;
+            values.push(authorId);
+        }
+
+        query += ` ORDER BY maps.created_at DESC`;
+
+        const result = await db.query(query, values);
+        const maps = result.rows;
+
+        // Формируем полные ссылки на картинки из Cloud.ru
+        for (let map of maps) {
+            if (map.image_url) {
+                map.image_url = `${process.env.CLOUD_RU_ENDPOINT}/${process.env.CLOUD_RU_BUCKET_NAME}/${map.image_url}`;
+            }
+        }
+
+        res.status(200).json(maps);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Не удалось загрузить карты.' });
+    }
+});
+
+
 // --- ЗАПУСК СЕРВЕРА ---
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, '0.0.0.0', () => {
