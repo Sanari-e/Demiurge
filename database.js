@@ -45,6 +45,20 @@ async function initDb() {
       );
     `);
 
+
+     await pool.query(`
+      CREATE TABLE IF NOT EXISTS markers (
+        id SERIAL PRIMARY KEY,
+        map_id INTEGER REFERENCES maps(id) ON DELETE CASCADE,
+        x FLOAT NOT NULL,
+        y FLOAT NOT NULL,
+        title TEXT,
+        description TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
+    
     console.log("Таблицы проверены/созданы.");
   } catch (error) {
     console.error("Ошибка при создании таблиц:", error);
