@@ -116,26 +116,24 @@
                 img.onload = async () => {
                     const width = img.width;
                     const height = img.height;
-                    
-                    // Задаем границы для картинки
                     const bounds = [[0, 0], [height, width]];
                     
-                    // Добавляем картинку на карту
                     L.imageOverlay(mapData.image_url, bounds).addTo(map);
-                    
-                    // Центрируем карту
                     map.fitBounds(bounds);
 
-                    // 5. Загружаем маркеры (если они есть)
+                    // 👇 ВОТ ЭТА МАГИЧЕСКАЯ СТРОЧКА 👇
+                    // Она заставляет карту пересчитать свои размеры на экране
+                    setTimeout(() => {
+                        map.invalidateSize();
+                    }, 200);
+
+                    // Загружаем маркеры
                     const markersResponse = await fetch(`/api/maps/${mapId}/markers`);
                     const markers = await markersResponse.json();
 
                     markers.forEach(marker => {
-                        // Внимание: в Leaflet Y идет первым, X — вторым. 
-                        // Мы умножаем проценты (0..1) на ширину/высоту картинки.
                         const markerY = marker.y * height;
                         const markerX = marker.x * width;
-
                         L.marker([markerY, markerX]).addTo(map)
                             .bindPopup(`<b>${marker.title || 'Метка'}</b><br>${marker.description || ''}`);
                     });
