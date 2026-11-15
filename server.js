@@ -286,11 +286,14 @@ app.post('/api/maps', upload.single('image'), async (req, res) => {
         await s3.send(command);
 
         // Сохраняем в базу (если title пустой, ставим "Без названия")
-        const safeTitle = title || 'Безымянный мир';
+         if (!title || title.trim() === '') {
+            return res.status(400).json({ error: 'Пожалуйста, придумайте название для вашего мира!' });
+        }
         
+        // Сохраняем в базу
         const insertResult = await db.query(
             'INSERT INTO maps (title, description, image_url, author_id) VALUES ($1, $2, $3, $4) RETURNING id',
-            [safeTitle, description, fileKey, author_id]
+            [title, description, fileKey, author_id] // используем title напрямую
         );
         
         res.status(201).json({ message: 'Карта успешно создана!', mapId: insertResult.rows[0].id });
