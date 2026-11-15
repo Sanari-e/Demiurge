@@ -348,7 +348,7 @@ border-color: #19003a !important;
     flex-grow: 1;
 }
 
-.btnOpenMapModal{
+#btnOpenMapModal{
     display: flex;
     justify-content: center;
     align-items: center;
