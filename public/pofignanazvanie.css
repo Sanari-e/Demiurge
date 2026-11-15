@@ -5,6 +5,11 @@ body {
     font-size: 120%;
 }
 
+.navbar {
+            position: relative;
+            z-index: 1030;
+        }
+
 .contentosnovnnoy {
      background-color: rgb(255, 214, 167); 
      width: 75%; 
@@ -361,4 +366,21 @@ border-color: #19003a !important;
     border: 2px solid #5e2897 !important;
     border-radius: 8px;
     margin-top: auto;
+}
+
+
+ #map {
+    height: 85vh; 
+    width: 100%;
+    background-color: #2b2b2b; /* Темный фон, пока грузится */
+    border: 3px solid #d5a9ff;
+    border-radius: 10px;
+    z-index: 1;
+    min-height: 500px;
+}
+
+
+.leaflet-popup-content-wrapper {
+    background-color: #fce4d6;
+    font-family: 'Lora', serif;
 }
