@@ -336,6 +336,147 @@ app.get('/api/maps', async (req, res) => {
         console.error(error);
         res.status(500).json({ error: 'Не удалось загрузить карты.' });
     }
+
+
+    // 11. ПОЛУЧЕНИЕ ОДНОЙ КАРТЫ ПО ID
+app.get('/api/maps/:id', async (req, res) => {
+    try {
+        const mapId = req.params.id;
+        const result = await db.query(`
+            SELECT maps.*, users.username as author_name 
+            FROM maps 
+            LEFT JOIN users ON maps.author_id = users.id 
+            WHERE maps.id = $1
+        `, [mapId]);
+        
+        const map = result.rows[0];
+
+        if (!map) {
+            return res.status(404).json({ error: 'Карта не найдена' });
+        }
+
+        // Собираем полную ссылку на картинку
+        if (map.image_url) {
+            map.image_url = `${process.env.CLOUD_RU_ENDPOINT}/${process.env.CLOUD_RU_BUCKET_NAME}/${map.image_url}`;
+        }
+
+        res.status(200).json(map);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Ошибка при получении карты.' });
+    }
+});
+
+// 12. ПОЛУЧЕНИЕ МАРКЕРОВ ДЛЯ КАРТЫ
+app.get('/api/maps/:id/markers', async (req, res) => {
+    try {
+        const mapId = req.params.id;
+        const result = await db.query('SELECT * FROM markers WHERE map_id = $1', [mapId]);
+        res.status(200).json(result.rows);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Ошибка при получении маркеров.' });
+    }
+});
+
+app.put('/api/maps/:id', upload.single('image'), async (req, res) => {
+    try {
+        const mapId = req.params.id;
+        const { title, description, author_id } = req.body;
+
+        const result = await db.query('SELECT * FROM maps WHERE id = $1', [mapId]);
+        const currentMap = result.rows[0];
+
+        if (!currentMap) return res.status(404).json({ error: 'Карта не найдена' });
+        if (currentMap.author_id != author_id) return res.status(403).json({ error: 'Нет прав!' });
+
+        let newImageUrlKey = currentMap.image_url;
+
+        if (req.file) {
+            const fileExtension = path.extname(req.file.originalname);
+            const fileKey = `maps/${Date.now()}${fileExtension}`;
+            const uploadCommand = new PutObjectCommand({
+                Bucket: process.env.CLOUD_RU_BUCKET_NAME,
+                Key: fileKey,
+                Body: req.file.buffer,
+                ContentType: req.file.mimetype,
+            });
+            await s3.send(uploadCommand);
+            newImageUrlKey = fileKey;
+
+            // Удаляем старую картинку
+            if (currentMap.image_url) {
+                const deleteCommand = new DeleteObjectCommand({
+                    Bucket: process.env.CLOUD_RU_BUCKET_NAME,
+                    Key: currentMap.image_url,
+                });
+                await s3.send(deleteCommand);
+            }
+        }
+
+        await db.query(
+            'UPDATE maps SET title = $1, description = $2, image_url = $3 WHERE id = $4',
+            [title, description, newImageUrlKey, mapId]
+        );
+
+        res.status(200).json({ message: 'Карта обновлена!' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Ошибка при редактировании.' });
+    }
+});
+
+// 14. УДАЛЕНИЕ КАРТЫ (и всех её маркеров)
+app.delete('/api/maps/:id', async (req, res) => {
+    try {
+        const mapId = req.params.id;
+        const author_id = req.query.author_id;
+
+        const result = await db.query('SELECT * FROM maps WHERE id = $1', [mapId]);
+        const map = result.rows[0];
+
+        if (!map) return res.status(404).json({ error: 'Карта не найдена' });
+        if (map.author_id != author_id) return res.status(403).json({ error: 'Нет прав!' });
+
+        // Удаляем картинку из Cloud.ru
+        if (map.image_url) {
+            const deleteCommand = new DeleteObjectCommand({
+                Bucket: process.env.CLOUD_RU_BUCKET_NAME,
+                Key: map.image_url,
+            });
+            await s3.send(deleteCommand);
+        }
+
+        // Удаляем из БД (маркеры удалятся сами благодаря ON DELETE CASCADE)
+        await db.query('DELETE FROM maps WHERE id = $1', [mapId]);
+
+        res.status(200).json({ message: 'Карта удалена.' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Ошибка при удалении.' });
+    }
+});
+
+// 15. ОЧИСТКА ВСЕХ МАРКЕРОВ
+app.delete('/api/maps/:id/markers', async (req, res) => {
+    try {
+        const mapId = req.params.id;
+        const author_id = req.query.author_id;
+
+        // Проверяем права
+        const result = await db.query('SELECT author_id FROM maps WHERE id = $1', [mapId]);
+        if (result.rows.length === 0) return res.status(404).json({ error: 'Карта не найдена' });
+        if (result.rows[0].author_id != author_id) return res.status(403).json({ error: 'Нет прав!' });
+
+        await db.query('DELETE FROM markers WHERE map_id = $1', [mapId]);
+        res.status(200).json({ message: 'Все маркеры удалены.' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Ошибка при очистке маркеров.' });
+    }
+});
+
+
 });
 
 
