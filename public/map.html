@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&family=Lora:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="pofignanazvanie.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <title>Demiurge</title>
+</head>
+<body style="background-image: url(https://i.pinimg.com/originals/66/74/73/66747366d9cabf8f1725ecdfe3c57b3f.jpg?nii=t); background-size: cover;">
+
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <nav class="navbar" style="background-image: url(https://img.freepik.com/free-photo/color-year-purple-tones-abstract-landscape-with-fantasy-aesthetic_23-2151394092.jpg?semt=ais_hybrid); background-size: cover;">
+  <div class="container-fluid" style="justify-content:center;">
+    <img src="лого Демиурга.png" style="width: 5%;">
+    <a href="glavnaya.html" class="navbar-brand" style="font-size: 300%; font-family: MedievalSharp;">Demiurge</a>
+    <p  style="margin-left: 5%; margin-bottom: 0%; font-size: 180%;">сотвори свой мир</p>
+    <p  style="margin-left: 10%; margin-bottom: 0%; font-size: 130%;">sanariameri@yandex.ru</p>
+  </div>
+</nav>
+
+
+<nav class="navbar navbar-expand-lg mb-3" style="background-color: rgb(255, 214, 167);">
+        <div class="container-fluid">
+            <a class="navbar-brand glav" href="Karti.html">← Вернуться в Атлас</a>
+            <h4 id="mapTitle" class="mb-0" style="font-family: 'MedievalSharp'; color: #2b1140;">Загрузка...</h4>
+            <div id="mapActions" style="display: none;" class="d-flex gap-2">
+                <button id="editMapBtn" class="btn btn-warning btn-sm">Редактировать</button>
+                <button id="clearMarkersBtn" class="btn btn-secondary btn-sm">Очистить маркеры</button>
+                <button id="deleteMapBtn" class="btn btn-danger btn-sm">Удалить мир</button>
+            </div>
+        </div>
+    </nav>
+
+
+<div class="container-fluid px-4">
+        <div id="map"></div>
+    </div>
+
+
+
+
+<div class="modal fade" id="editMapModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content" style="background-color: #fce4d6; font-family: 'Lora', serif;">
+          <div class="modal-header">
+            <h5 class="modal-title" style="font-family: 'MedievalSharp'; font-size: 200%;">Редактирование мира</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <form id="editMapForm">
+              <div class="mb-3">
+                <label class="form-label">Название мира *</label>
+                <input type="text" class="form-control" id="editMapTitle" required>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Описание</label>
+                <textarea class="form-control" id="editMapDescription" rows="3"></textarea>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Новое изображение (если нужно заменить)</label>
+                <input type="file" class="form-control" id="editMapImage" accept="image/*">
+              </div>
+              <div class="modal-footer px-0 pb-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                <button type="submit" class="btn btn-primary" style="background-color: rgb(210, 162, 255); border: none;">Сохранить</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+
+
+<script>
+        document.addEventListener("DOMContentLoaded", async () => {
+            // 1. Получаем ID карты из URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const mapId = urlParams.get('id');
+
+            if (!mapId) {
+                alert("Карта не выбрана!");
+                window.location.href = 'Karti.html';
+                return;
+            }
+
+            try {
+                // 2. Запрашиваем данные карты
+                const response = await fetch(`/api/maps/${mapId}`);
+                if (!response.ok) throw new Error("Карта не найдена");
+                const mapData = await response.json();
+
+                // Обновляем заголовок на странице
+                document.getElementById('mapTitle').textContent = mapData.title;
+                document.title = `${mapData.title} - Demiurge`;
+
+                // 3. Инициализируем Leaflet (CRS.Simple для картинок!)
+                const map = L.map('map', {
+                    crs: L.CRS.Simple,
+                    minZoom: -2
+                });
+
+                // 4. Загружаем картинку и вычисляем её размеры
+                const img = new Image();
+                img.src = mapData.image_url;
+                
+                img.onload = async () => {
+                    const width = img.width;
+                    const height = img.height;
+                    
+                    // Задаем границы для картинки
+                    const bounds = [[0, 0], [height, width]];
+                    
+                    // Добавляем картинку на карту
+                    L.imageOverlay(mapData.image_url, bounds).addTo(map);
+                    
+                    // Центрируем карту
+                    map.fitBounds(bounds);
+
+                    // 5. Загружаем маркеры (если они есть)
+                    const markersResponse = await fetch(`/api/maps/${mapId}/markers`);
+                    const markers = await markersResponse.json();
+
+                    markers.forEach(marker => {
+                        // Внимание: в Leaflet Y идет первым, X — вторым. 
+                        // Мы умножаем проценты (0..1) на ширину/высоту картинки.
+                        const markerY = marker.y * height;
+                        const markerX = marker.x * width;
+
+                        L.marker([markerY, markerX]).addTo(map)
+                            .bindPopup(`<b>${marker.title || 'Метка'}</b><br>${marker.description || ''}`);
+                    });
+                };
+
+            } catch (error) {
+                console.error(error);
+                alert("Ошибка при загрузке карты!");
+            }
+        });
+    </script>
+
+
+
+
+
+
+<div class="podvalchik">
+  <div class="container">
+  <div class="row podv">
+    <div class="col">
+      <img src="лого Демиурга.png"  style="width: 30%; margin-top: -8%;"><br>
+      <h2 style="font-family: MedievalSharp;">Demiurge</h2><br>
+      Связаться с создателем: <br>
+      Тг: @Sanari_e ;<br>
+      ВК: @sanarie;<br>
+      Email: sanariameri@yandex.ru;<br>
+    </div>
+    <div class="col" style="color: rgb(97, 73, 153);">
+      <br>
+      <a href="#" style="font-size: 120%;" data-bs-toggle="modal" data-bs-target="#registerModal">Стать путешественником</a><br>
+      <a href="Help.html">Помощь/FAQ</a><br>
+      <a href="MoiMiri.html">Мои миры</a><br>
+      <a href="#">Случайный мир</a><br>
+      <a href="#">Политика конфиденциальности</a><br>
+      <a href="#">Мир создателя</a><br>
+      <a href="#">Следить за развитием проекта</a><br>
+      <p></p>
+    </div>
+ 
+  </div>
+</div>
+</div>
+
+
+
+<div id="modal-container"></div>
+<script src="components.js"></script>
+</body>
+</html>
