@@ -517,6 +517,7 @@ list-style: none;
     display: block;
     object-fit: cover;
     border-radius: 25px;
+    justify-self: center;
 }
 
 @media (max-width: 768px) {
