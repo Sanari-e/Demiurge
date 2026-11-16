@@ -75,7 +75,6 @@ a, a:link, a:visited, a:hover, a:active, a:focus {
 }
 
 #knopkaaa {
-    container-type: inline-size;
     display: flex;
     align-items: center;
     max-width: 85%; 
