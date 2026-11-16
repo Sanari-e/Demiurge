@@ -431,6 +431,7 @@ border-color: #19003a !important;
     .map-card{
         margin-bottom: 15px;
     }
+    
 }
 
 @media (max-width: 991.98px) {
@@ -441,4 +442,52 @@ border-color: #19003a !important;
 .container-fluid.position-relative {
     flex-direction: column !important;
 }
+}
+
+
+.table-container {
+    width: 90%;
+    overflow-x: auto;
+    border-radius: 20px;
+}
+
+/* Основная таблица */
+.demiurge-table {
+    width: 100%;
+    border-collapse: collapse; /* Убирает двойные рамки */
+    background-color: #fce4d6; /* Твой персиковый цвет */
+    font-family: 'Lora', serif;
+    color: #2b1140; /* Темно-фиолетовый текст */
+    min-width: 600px; /* Чтобы таблица не сжималась слишком сильно */
+}
+
+/* Заголовки таблицы */
+.demiurge-table th {
+    background-color: #d5a9ff; /* Фиолетовый, как кнопки */
+    color: #2b1140;
+    font-family: 'MedievalSharp', cursive;
+    font-size: 1.2rem;
+    padding: 15px;
+    text-align: left;
+    border-bottom: 3px solid #5e2897;
+}
+
+/* Ячейки */
+.demiurge-table td {
+    padding: 12px 15px;
+    border-bottom: 1px dashed #d5a9ff; /* Пунктирная линия между строками */
+    vertical-align: middle;
+}
+
+/* Эффект при наведении на строку */
+.demiurge-table tbody tr {
+    transition: background-color 0.3s ease;
+}
+.demiurge-table tbody tr:hover {
+    background-color: rgba(213, 169, 255, 0.2); /* Легкая фиолетовая подсветка */
+}
+
+/* Убираем нижнюю рамку у последней строки */
+.demiurge-table tbody tr:last-child td {
+    border-bottom: none;
 }
