@@ -471,10 +471,6 @@ border-color: #19003a !important;
     border-bottom: 3px solid #5e2897;
 }
 
-.demiurge-table {
-list-style: none;
-}
-
 .demiurge-table td {
     padding: 12px 15px;
     border-bottom: 1px dashed #d5a9ff; 
@@ -490,6 +486,10 @@ list-style: none;
 
 .demiurge-table tbody tr:last-child td {
     border-bottom: none;
+}
+
+.demiurge-list {
+list-style: none;
 }
 
 .demiurge-list li {
