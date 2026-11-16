@@ -20,6 +20,38 @@ body {
      border-radius: 12%;
 }
 
+
+.content-flex {
+  display: flex;
+  align-items: flex-start;   /* колонки прижаты к верху */
+  gap: 2rem;                 /* расстояние между картинкой и текстом */
+  padding: 1rem 2rem;
+}
+
+.content-img {
+  width: 40%;
+  max-width: 450px;          /* чтобы на огромных экранах картинка не разрасталась бесконечно */
+  flex-shrink: 0;
+  border-radius: 15px;
+}
+
+.content-text {
+  flex: 1;
+  min-width: 0;              /* важно: без этого текст может «распирать» колонку */
+}
+
+/* на узких экранах — картинка сверху, текст снизу */
+@media (max-width: 768px) {
+  .content-flex {
+    flex-direction: column;
+  }
+  .content-img {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+
 .podvalchik {
    background-color: rgb(210, 162, 255);
    
@@ -319,12 +351,12 @@ border-color: #19003a !important;
     width: 100%;
 }
 
-/* Карточка карты */
+
 .map-card {
     background-color: #fce4d6;
     border: 2px solid #d5a9ff;
     border-radius: 10px;
-    overflow: hidden; /* Чтобы картинка не вылезала за скругленные края */
+    overflow: hidden; 
     display: flex;
     flex-direction: column;
     box-shadow: 0 4px 6px rgba(0,0,0,0.1);
@@ -332,18 +364,16 @@ border-color: #19003a !important;
 }
 
 .map-card:hover {
-    transform: translateY(-5px); /* Эффект приподнимания при наведении */
+    transform: translateY(-5px); 
 }
 
-/* Картинка внутри карточки карты */
 .map-card-img {
     width: 100%;
     height: 200px;
-    object-fit: cover; /* Обрезает картинку, чтобы она заполнила блок без искажений */
+    object-fit: cover; 
     border-bottom: 2px solid #d5a9ff;
 }
 
-/* Текстовая часть карточки */
 .map-card-body {
     padding: 15px;
     display: flex;
@@ -370,7 +400,7 @@ border-color: #19003a !important;
  #map {
     height: 85vh; 
     width: 100%;
-    background-color: #2b2b2b; /* Темный фон, пока грузится */
+    background-color: #2b2b2b; 
     border: 3px solid #d5a9ff;
     border-radius: 10px;
     z-index: 1;
@@ -417,5 +447,5 @@ border-color: #19003a !important;
             display: flex;
             flex-direction: column;
             gap: 10px;
-            display: none; /* Скрыта по умолчанию */
+            display: none;
         }
