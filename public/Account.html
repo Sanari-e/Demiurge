@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic.com.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&family=Lora:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="pofignanazvanie.css">
-    <title>Document</title>
+    <title>Demiurge</title>
 </head>
 <body style="background-image: url(https://i.pinimg.com/originals/66/74/73/66747366d9cabf8f1725ecdfe3c57b3f.jpg?nii=t); background-size: cover;">
 
@@ -102,7 +102,100 @@
 </nav>
 
 
+<div class="container my-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-6">
+                <div class="demiurge-block p-4 text-center">
+                    
+                    <h2 class="mb-4" style="font-family: 'MedievalSharp'; color: #2b1140;">Мой Профиль</h2>
 
+                    <!-- АВАТАРКА -->
+                    <div class="avatar-container mb-3">
+                        <!-- Пока используем заглушку, потом сможешь загружать свою -->
+                        <img src="https://cdn-icons-png.flaticon.com/512/847/847969.png" alt="Аватар" class="avatar-img">
+                        <button class="btn btn-sm btn-outline-dark mt-2" style="font-family: 'Lora';">Изменить аватар</button>
+                    </div>
+
+                    <!-- ИНФОРМАЦИЯ -->
+                    <h3 id="profileUsername" style="font-family: 'Lora'; font-weight: bold; color: #5e2897;">Имя Пользователя</h3>
+                    <p id="profileEmail" style="font-family: 'Lora'; color: #666;">email@example.com</p>
+                    <p style="font-family: 'Lora'; font-size: 0.9rem; color: #888;">Роль: Путешественник</p>
+
+                    <hr style="border-color: #d5a9ff;">
+
+                    <!-- КНОПКИ УПРАВЛЕНИЯ -->
+                    <div class="d-grid gap-2">
+                        <!-- Кнопка изменения имени (вызывает модалку) -->
+                        <button class="btn btn-purple-glow" data-bs-toggle="modal" data-bs-target="#editNameModal">
+                            ✏️ Изменить имя
+                        </button>
+                        
+                        <!-- Кнопка изменения пароля (вызывает модалку) -->
+                        <button class="btn btn-purple-glow" data-bs-toggle="modal" data-bs-target="#editPasswordModal">
+                            🔒 Изменить пароль
+                        </button>
+                        
+                        <!-- Кнопка удаления аккаунта -->
+                        <button class="btn btn-danger mt-3" style="font-family: 'Lora';">
+                            🗑️ Удалить аккаунт
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- МОДАЛКА: ИЗМЕНЕНИЕ ИМЕНИ -->
+    <div class="modal fade" id="editNameModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content" style="background-color: #fce4d6; font-family: 'Lora', serif;">
+                <div class="modal-header">
+                    <h5 class="modal-title" style="font-family: 'MedievalSharp';">Изменение имени</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="mb-3">
+                            <label class="form-label">Новое имя пользователя</label>
+                            <input type="text" class="form-control" placeholder="Введите новое имя">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="button" class="btn btn-primary" style="background-color: rgb(210, 162, 255); border: none;">Сохранить</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- МОДАЛКА: ИЗМЕНЕНИЕ ПАРОЛЯ -->
+    <div class="modal fade" id="editPasswordModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content" style="background-color: #fce4d6; font-family: 'Lora', serif;">
+                <div class="modal-header">
+                    <h5 class="modal-title" style="font-family: 'MedievalSharp';">Изменение пароля</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="mb-3">
+                            <label class="form-label">Старый пароль</label>
+                            <input type="password" class="form-control" placeholder="••••••••">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Новый пароль</label>
+                            <input type="password" class="form-control" placeholder="••••••••">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="button" class="btn btn-primary" style="background-color: rgb(210, 162, 255); border: none;">Сохранить</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
 
 <div class="podvalchik">
