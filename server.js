@@ -336,6 +336,7 @@ app.get('/api/maps', async (req, res) => {
         console.error(error);
         res.status(500).json({ error: 'Не удалось загрузить карты.' });
     }
+});
 
 
     // 11. ПОЛУЧЕНИЕ ОДНОЙ КАРТЫ ПО ID
@@ -476,8 +477,6 @@ app.delete('/api/maps/:id/markers', async (req, res) => {
     }
 });
 
-
-});
 
 
 // --- ЗАПУСК СЕРВЕРА ---
