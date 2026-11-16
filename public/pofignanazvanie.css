@@ -472,6 +472,10 @@ border-color: #19003a !important;
 }
 
 .demiurge-table td {
+list-style: none;
+}
+
+.demiurge-table td {
     padding: 12px 15px;
     border-bottom: 1px dashed #d5a9ff; 
     vertical-align: middle;
