@@ -94,22 +94,80 @@
             }
 
             try {
-                // 2. Запрашиваем данные карты
                 const response = await fetch(`/api/maps/${mapId}`);
                 if (!response.ok) throw new Error("Карта не найдена");
                 const mapData = await response.json();
 
-                // Обновляем заголовок на странице
                 document.getElementById('mapTitle').textContent = mapData.title;
-                document.title = `${mapData.title} - Demiurge`;
 
-                // 3. Инициализируем Leaflet (CRS.Simple для картинок!)
-                const map = L.map('map', {
-                    crs: L.CRS.Simple,
-                    minZoom: -2
-                });
+                // --- ПРОВЕРКА ПРАВ ---
+                const userString = localStorage.getItem('demiurgeUser');
+                let currentUser = null;
+                
+                if (userString) {
+                    currentUser = JSON.parse(userString);
+                    
+                    // Используем == для сравнения (игнорирует разницу строк/чисел)
+                    if (currentUser.id == mapData.author_id) {
+                        // Показываем кнопки
+                        document.getElementById('mapActions').style.display = 'flex';
+                        
+                        // На всякий случай проверяем, что элементы формы существуют
+                        const editTitleEl = document.getElementById('editMapTitle');
+                        if (editTitleEl) {
+                            editTitleEl.value = mapData.title;
+                            document.getElementById('editMapDescription').value = mapData.description || '';
 
-                // 4. Загружаем картинку и вычисляем её размеры
+                            // 1. Кнопка Редактировать
+                            document.getElementById('editMapBtn').addEventListener('click', () => {
+                                new bootstrap.Modal(document.getElementById('editMapModal')).show();
+                            });
+
+                            // 2. Сохранение изменений
+                            document.getElementById('editMapForm').addEventListener('submit', async (e) => {
+                                e.preventDefault();
+                                const formData = new FormData();
+                                formData.append('title', document.getElementById('editMapTitle').value);
+                                formData.append('description', document.getElementById('editMapDescription').value);
+                                formData.append('author_id', currentUser.id);
+                                const file = document.getElementById('editMapImage').files[0];
+                                if (file) formData.append('image', file);
+
+                                const res = await fetch(`/api/maps/${mapId}`, { method: 'PUT', body: formData });
+                                const data = await res.json();
+                                if (res.ok) { alert('✅ ' + data.message); location.reload(); } 
+                                else { alert('⚠️ ' + data.error); }
+                            });
+                        }
+
+                        // 3. Кнопка Очистить маркеры
+                        const clearBtn = document.getElementById('clearMarkersBtn');
+                        if (clearBtn) {
+                            clearBtn.addEventListener('click', async () => {
+                                if (!confirm("Удалить все метки на этой карте?")) return;
+                                const res = await fetch(`/api/maps/${mapId}/markers?author_id=${currentUser.id}`, { method: 'DELETE' });
+                                const data = await res.json();
+                                if (res.ok) { alert('🧹 ' + data.message); location.reload(); } 
+                                else { alert('⚠️ ' + data.error); }
+                            });
+                        }
+
+                        // 4. Кнопка Удалить мир
+                        const delBtn = document.getElementById('deleteMapBtn');
+                        if (delBtn) {
+                            delBtn.addEventListener('click', async () => {
+                                if (!confirm("Вы точно хотите навсегда удалить этот мир?")) return;
+                                const res = await fetch(`/api/maps/${mapId}?author_id=${currentUser.id}`, { method: 'DELETE' });
+                                const data = await res.json();
+                                if (res.ok) { alert('🗑️ ' + data.message); window.location.href = 'Karti.html'; } 
+                                else { alert('⚠️ ' + data.error); }
+                            });
+                        }
+                    }
+                }
+
+                // --- ОТРИСОВКА LEAFLET ---
+                let map = L.map('map', { crs: L.CRS.Simple, minZoom: -2 });
                 const img = new Image();
                 img.src = mapData.image_url;
                 
@@ -120,14 +178,9 @@
                     
                     L.imageOverlay(mapData.image_url, bounds).addTo(map);
                     map.fitBounds(bounds);
+                    
+                    setTimeout(() => { map.invalidateSize(); }, 200);
 
-                    // 👇 ВОТ ЭТА МАГИЧЕСКАЯ СТРОЧКА 👇
-                    // Она заставляет карту пересчитать свои размеры на экране
-                    setTimeout(() => {
-                        map.invalidateSize();
-                    }, 200);
-
-                    // Загружаем маркеры
                     const markersResponse = await fetch(`/api/maps/${mapId}/markers`);
                     const markers = await markersResponse.json();
 
@@ -140,8 +193,8 @@
                 };
 
             } catch (error) {
-                console.error(error);
-                alert("Ошибка при загрузке карты!");
+                console.error("Критическая ошибка:", error);
+                alert("Ошибка при загрузке карты! Проверьте консоль (F12).");
             }
         });
     </script>
