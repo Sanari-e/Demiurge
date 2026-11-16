@@ -1,493 +1,176 @@
-body {
-    font-family: 'Lora', Georgia, serif;
-}
-.collapse, .navbar-collapse {
-    font-size: 120%;
-}
-
-.navbar {
-            position: relative;
-            z-index: 1030;
-        }
-
-.contentosnovnnoy {
-     background-color: rgb(255, 214, 167); 
-     width: 75%; 
-     height: fit-content;
-     margin-top: 2%;
-     margin-bottom: 2%;
-     justify-self: center;
-     border-radius: 12%;
-     display: flow-root;
-     padding-bottom: 3%;
-}
-
-.podvalchik {
-   background-color: rgb(210, 162, 255);
-   
-}
-
-.glav:hover {
-    transform: translateY(-4px) scale(1.03); 
-}
-
-.glav:active {
-    transform: translateY(-1px) scale(0.98);
-    transition: all 0.1s ease;
-}
-
-
-.nav-icon {
-    object-fit: contain; 
-    transition: transform 0.2s ease; 
-}
-
-.nav-icon:hover {
-    transform: scale(1.1);
-}
-
-.nav-link.p-0 {
-    padding: 0 !important;
-    display: flex;
-    align-items: center;
-}
-
-.navbar-brand.glav {
-     background: linear-gradient(135deg, #875fb3 0%, #cfacf0 100%);
-    padding: 8px 24px;
-    border-radius: 50px;
-    color: #fff !important;
-    font-size: 20px; 
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    transition: all 0.3s ease-in-out;
-    display: inline-flex;
-    align-items: center;
-}
-
-.row.podv {
-    text-align: center;
-    justify-content: center;
-}
-
-a, a:link, a:visited, a:hover, a:active, a:focus {
-    color: inherit !important;
-    text-decoration: none !important;
-}
-
-#knopkaaa {
-    display: flex;
-    align-items: center;
-    max-width: 85%; 
-    justify-self: center;
-    margin-right: 3%;
-}
-
-
-.card-title{
-    word-wrap: break-word;
-}
-
-
-#account{
-    background-color: rgb(191, 157, 221);
-}
-
-#account .dropdown-item{
-    color: #ffffff !important;
-}
-
-#account:hover .dropdown-item:hover{
-    color: #19003a !important;
-}
-
-#logoutBtn #logoutBtn:hover {
-    color: rgb(155, 15, 15) !important;
-}
-
-.glcontent {
-    margin-left: 3%; 
-    margin-right: 3%;
-}
-
-
-.active{
-
-    background: radial-gradient(circle at center, #d2a2ff 0%, rgba(210, 162, 255, 0.5) 50%, transparent 85%) !important;
-    border-radius: 25px;
-}
-
-
-@media (max-width: 991.98px) {
-.active{
-    background: transparent !important;
-    background-color: #d2a2ff !important;
-    color: #fff;
-    padding-left: 15px;
-}
-.nav-item{
-    margin-top: 5px;
-}}
-
-
-
-.archiveContent{
-    display: flex;
-     background-color: rgb(255, 214, 167); 
-     width: 75%; 
-     margin-top: 2%;
-     margin-bottom: 2%;
-     padding: 20px;
-     justify-self: center;
-    align-items: center;
-     border-radius: 12%;
-    flex-direction: column;
-}
-
-
-#emptyState{
-    height: 350px; 
-    display: flex; 
-    justify-content: center; 
-    align-items: center;
-}
-
-
-
-#articlesGrid {
-    width: 100%;
-    flex-grow: 1;
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); 
-    gap: 20px; 
-    padding: 10px;
-    overflow-y: auto; 
-    max-height: 600px; 
-}
-
-.article-card {
-    background-color: #fce4d6;
-    border: 2px solid #d5a9ff;
-    border-radius: 10px;
-    padding: 15px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    overflow: hidden;
-}
-
-
-.article-card h3 {
-    word-wrap: break-word;
-    overflow-wrap: break-word;
-}
-
-
-.article-card p {
-    word-wrap: break-word;
-    overflow-wrap: break-word;
-}
-
-
-#articleModalBtn{
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 150%;
-    width: 7%;
-    height: 5%;
-    padding-bottom: 1%;
-    padding-top: 1%;
-    padding-left: 3%;
-    padding-right: 3%;
-    background-color: #d5a9ff;
-    border: 2px solid #5e2897;
-    border-radius: 8px;
-    margin-top: auto;
-}
-
-
-    .article-container {
-        background-color: #fce4d6;
-        border-radius: 20px;
-        padding: 40px;
-        margin-top: 40px;
-        margin-bottom: 40px;
-        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-        width: 75%;
-        justify-self: center;
-    }
-    .article-title {
-        font-family: 'MedievalSharp', serif;
-        color: #2b1140;
-        font-size: 300%;
-        margin-bottom: 20px;
-    }
-    .article-meta {
-        color: #888;
-        margin-bottom: 30px;
-        border-bottom: 2px solid #d5a9ff;
-        padding-bottom: 10px;
-    }
-    .article-image {
-        max-width: 90%;
-        border-radius: 10px;
-        margin-bottom: 30px;
-    }
-    .article-text {
-        font-family: 'Lora', serif;
-        font-size: 1.2rem;
-        line-height: 1.8;
-        color: #333;
-        white-space: pre-wrap;
-    }
-
-
-#editArticleBtn{
-    width: fit-content !important;
-    max-width: 250px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    padding: 10px 20px;
-background-color: #d5a9ff !important;
-color: #3c1b5f !important;
-border-color: #3c1b5f !important;
-}
-#editArticleBtn:hover{
-background-color: #ad7fd8 !important;
-color: #281141 !important;
-}
-
-
-#deleteArticleBtn{
-    width: fit-content !important;
-    max-width: 250px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    padding: 10px 20px;
-background-color: #ff4f4f !important;
-color: #8a0707 !important;
-}
-#deleteArticleBtn:hover{
-    background-color: #db3b3b !important;
-    color: #5f0505 !important;
-}
-
-
-
-#returnArchiveBtn{
-background-color: #5e2897 !important;
-color: #fff !important;
-border-color: #19003a !important;
-}
-#returnArchiveBtn:hover{
-    background-color: #4e1f80 !important;
-}
-
-
-
-#authorActions{
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 20px;
-    flex-wrap: wrap;
-}
-
-
-
-#emptyStateMaps{
-    height: 350px; 
-    display: flex; 
-    justify-content: center; 
-    align-items: center;
-}
-
-
-#mapsGrid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 20px;
-    width: 100%;
-}
-
-
-.map-card {
-    background-color: #fce4d6;
-    border: 2px solid #d5a9ff;
-    border-radius: 10px;
-    overflow: hidden; 
-    display: flex;
-    flex-direction: column;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    transition: transform 0.2s ease;
-}
-
-.map-card:hover {
-    transform: translateY(-5px); 
-}
-
-.map-card-img {
-    width: 100%;
-    height: 200px;
-    object-fit: cover; 
-    border-bottom: 2px solid #d5a9ff;
-}
-
-.map-card-body {
-    padding: 15px;
-    display: flex;
-    flex-direction: column;
-    flex-grow: 1;
-}
-
-#btnOpenMapModal{
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 150%;
-    padding-bottom: 1%;
-    padding-top: 1%;
-    padding-left: 3%;
-    padding-right: 3%;
-    background-color: #d5a9ff !important;
-    border: 2px solid #5e2897 !important;
-    border-radius: 8px;
-    margin-top: auto;
-}
-
-
- #map {
-    height: 100%; 
-    width: 100%;
-    background-color: #2b2b2b; 
-    border: 3px solid #d5a9ff;
-    border-radius: 10px;
-}
-
-
-.leaflet-popup-content-wrapper {
-    background-color: #fce4d6;
-    font-family: 'Lora', serif;
-}
-
-
-.map-wrapper {
-    display: flex; 
-    height: 75vh; 
-    gap: 15px; 
-    flex-grow: 1;
-    min-height: 500px;
-    position: relative;
-    z-index: 1;
-}
-
-
-.marker-option {
-    width: 50px; height: 50px;
-    border: 2px solid transparent;
-    border-radius: 8px;
-    cursor: pointer;
-    background-color: #fff;
-    padding: 5px;
-    transition: 0.2s;
-}
-.marker-option:hover {
-    transform: scale(1.1);
-}
-.marker-option.selected { 
-    border-color: #2b1140; 
-    box-shadow: 0 0 10px rgba(43, 17, 64, 0.5); 
-}
-
-#sidebar {
-            width: 250px;
-            background: #fce4d6;
-            border: 3px solid #d5a9ff;
-            border-radius: 10px;
-            padding: 15px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            display: none;
-        }
-
-
-@media (max-width: 768px) {
-    #mapsGrid {
-        grid-template-columns: 1fr !important;
-        padding: 0 10px !important;
-    }
-    .archiveContent{
-        padding: 10px !important;
-        min-height: auto !important;
-    }
-    .map-card{
-        margin-bottom: 15px;
-    }
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&family=Lora:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="pofignanazvanie.css">
+    <title>Demiurge</title>
+</head>
+<body style="background-image: url(https://i.pinimg.com/originals/66/74/73/66747366d9cabf8f1725ecdfe3c57b3f.jpg?nii=t); background-size: cover;">
+
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script>
     
-}
-
-@media (max-width: 991.98px) {
-    #mapTitle{
-        position: static !important;
-        transform: none !important;
-    }
-.container-fluid.position-relative {
-    flex-direction: column !important;
-}
-}
+    <nav class="navbar" style="background-image: url(https://img.freepik.com/free-photo/color-year-purple-tones-abstract-landscape-with-fantasy-aesthetic_23-2151394092.jpg?semt=ais_hybrid); background-size: cover;">
+  <div class="container-fluid" style="justify-content:center;">
+    <img src="лого Демиурга.png" style="width: 5%;">
+    <a href="glavnaya.html" class="navbar-brand" style="font-size: 300%; font-family: MedievalSharp;">Demiurge</a>
+    <p  style="margin-left: 5%; margin-bottom: 0%; font-size: 180%;">сотвори свой мир</p>
+    <p  style="margin-left: 10%; margin-bottom: 0%; font-size: 130%;">sanariameri@yandex.ru</p>
+  </div>
+</nav>
 
 
-.table-container {
-    width: 90%;
-    overflow-x: auto;
-    border-radius: 20px;
-}
+<nav class="navbar navbar-expand-lg" style="background-color: rgb(255, 214, 167);">
+  <div class="container-fluid">
+    <a class="navbar-brand glav" href="glavnaya.html">Главная</a>
+    
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Переключатель навигации">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    
+    <div class="collapse navbar-collapse" id="navbarNavDropdown">
+      
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        <li class="nav-item">
+          <a class="nav-link" href="Karti.html">Атлас миров</a>
+        </li> 
+        <li class="nav-item">
+          <a class="nav-link" href="MoiMiri.html">Мои миры</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="Archive.html">Архив знаний</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="AdventureJournal.html">Путевые дневники</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="Help.html">Помощь</a>
+        </li>
+      </ul>
 
-/* Основная таблица */
-.demiurge-table {
-    width: 100%;
-    border-collapse: collapse; /* Убирает двойные рамки */
-    background-color: #fce4d6; /* Твой персиковый цвет */
-    font-family: 'Lora', serif;
-    color: #2b1140; /* Темно-фиолетовый текст */
-    min-width: 600px; /* Чтобы таблица не сжималась слишком сильно */
-}
+      <div class="d-flex align-items-center gap-3">
+        <div class="dropdown">
+          <a class="nav-link dropdown-toggle p-0" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <img src="https://cdn-icons-png.magnific.com/512/10733/10733154.png" class="nav-icon" style="width: 36px;">
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li><a class="dropdown-item" href="#">Действие</a></li>
+            <li><a class="dropdown-item" href="#">Другое действие</a></li>
+          </ul>
+        </div>
 
-/* Заголовки таблицы */
-.demiurge-table th {
-    background-color: #d5a9ff; /* Фиолетовый, как кнопки */
-    color: #2b1140;
-    font-family: 'MedievalSharp', cursive;
-    font-size: 1.2rem;
-    padding: 15px;
-    text-align: left;
-    border-bottom: 3px solid #5e2897;
-}
+        <div class="dropdown">
+  <a class="nav-link dropdown-toggle p-0" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    <img src="Иконка аккаунта.png" class="nav-icon" style="width: 50px;">
+  </a>
+  <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton" id="account" style="width: 400%;">
+    
+    <li class="menu-guest-item">
+        <button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#registerModal">Стать Путешественником <img src="https://cdn-icons-png.flaticon.com/512/96/96239.png" style="width: 8%;"></button>
+    </li>
+    <li class="menu-guest-item">
+        <button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#loginModal">Вход</button>
+    </li>
 
-/* Ячейки */
-.demiurge-table td {
-    padding: 12px 15px;
-    border-bottom: 1px dashed #d5a9ff; /* Пунктирная линия между строками */
-    vertical-align: middle;
-}
+    <li class="menu-user-item" style="display: none;">
+        <a class="dropdown-item" href="Account.html">Мой профиль</a>
+    </li>
+    <li class="menu-user-item" style="display: none;">
+        <a class="dropdown-item" href="MoiMiri.html">Мои миры</a>
+    </li>
+    <li class="menu-user-item" style="display: none;">
+        <hr class="dropdown-divider">
+    </li>
+    <li class="menu-user-item" style="display: none;">
+        <button class="dropdown-item text-danger" id="logoutBtn">Выйти</button>
+    </li>
+    
+  </ul>
+</div>
 
-/* Эффект при наведении на строку */
-.demiurge-table tbody tr {
-    transition: background-color 0.3s ease;
-}
-.demiurge-table tbody tr:hover {
-    background-color: rgba(213, 169, 255, 0.2); /* Легкая фиолетовая подсветка */
-}
+        <a class="nav-link p-0" href="Settings.html">
+          <img src="https://cdn-icons-png.flaticon.com/512/154/154505.png" class="nav-icon" style="width: 30px;">
+        </a>
+      </div>
+    </div>
+  </div>
+</nav>
 
-/* Убираем нижнюю рамку у последней строки */
-.demiurge-table tbody tr:last-child td {
-    border-bottom: none;
-}
+
+<div class="contentosnovnnoy">
+    <br>
+    <img src="https://avatars.mds.yandex.net/i?id=4a52f01a5713d998b745cf3c9ea0309b95bdf49a-4303190-images-thumbs&n=13" style="margin-left: 4%; margin-top: 3%; border-radius: 15px; float: left; margin-right: 4%; width: 40%;">
+    <h2 class="glcontent" style="text-decoration: underline;">Что такое Demiurge?</h2>
+    <p class="glcontent">Demiurge - это бесплатная открытая платформа для создания собственный миров, карт, историй. Платформа создана для творцов-демиургов, горящих желанием поделиться своим миром с остальными, путешественников, идущих по чужим картам и маршрутам и очень любопытных наблюдателей, следящих за историями других миров.
+        Пользуясь Demiurge, вы сможете вместе с другими людьми творить свою историю. Загрузите карту и отметьте на ней важные места и локации, позвольте отважным путешественникам оставить на ней свои следы. 
+        Создайте собственную библиотеку записей о мире. Ведите вместе с вашими путешественниками походный журнал, хранящий в себе неисчислимое количество событий и встреч. <br><br>
+
+        <a href="MoiMiri.html"><div class="card text-bg-dark" id="knopkaaa">
+          <img src="расная кнопка.jpg" class="card-img">
+          <div class="card-img-overlay">
+          <h5 class="card-title">Начните создавать мир уже сейчас >>></h5>
+          </div></div></a><br><br>
+
+        <h2 class="glcontent">
+          Почему Демиурги выбирают этот проект?
+        </h2>
+        <ul class="demiurge-list glcontent">
+            <li><strong>Атмосферные карты:</strong> Загружайте свои миры и ставьте маркеры, которые ведут прямо к лору.</li>
+            <li><strong>Никаких ограничений:</strong> Полностью бесплатная платформа для творцов без скрытых платежей.</li>
+            <li><strong>Совместное творчество:</strong> Приглашайте Путешественников (игроков), чтобы они оставляли заметки на карте.</li>
+            <li><strong>Надежное хранилище:</strong> Ваши карты, статьи и иллюстрации надежно защищены в облаке.</li>
+        </ul>
+        <br><br>
+        <h2 class="glcontent">
+          Загляните за завесу, возьмите судьбу мира в свои руки
+        </h2>
+<div class="video-wrapper">
+                <!-- Вставь ссылку на свой видеофайл (mp4) вместо этой -->
+                <video controls poster="лого Демиурга.png">
+                    <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
+                    Ваш браузер не поддерживает видео.
+                </video>
+            </div>
+        <br><br>
+    </p>
+</div>
+
+
+<div class="podvalchik">
+  <div class="container">
+  <div class="row podv">
+    <div class="col">
+      <img src="лого Демиурга.png"  style="width: 30%; margin-top: -8%;"><br>
+      <h2 style="font-family: MedievalSharp;">Demiurge</h2><br>
+      Связаться с создателем: <br>
+      Тг: @Sanari_e ;<br>
+      ВК: @sanarie;<br>
+      Email: sanariameri@yandex.ru;<br>
+    </div>
+    <div class="col" style="color: rgb(97, 73, 153);">
+      <br>
+      <a href="#" style="font-size: 120%;" data-bs-toggle="modal" data-bs-target="#registerModal">Стать путешественником</a><br>
+      <a href="Help.html">Помощь/FAQ</a><br>
+      <a href="MoiMiri.html">Мои миры</a><br>
+      <a href="#">Случайный мир</a><br>
+      <a href="#">Политика конфиденциальности</a><br>
+      <a href="#">Мир создателя</a><br>
+      <a href="razvitie.html">Следить за развитием проекта</a><br>
+      <p></p>
+    </div>
+ 
+  </div>
+</div>
+</div>
+
+
+
+<div id="modal-container"></div>
+<script src="components.js"></script>
+</body>
+</html>
