@@ -475,17 +475,17 @@ app.delete('/api/maps/:id/markers', async (req, res) => {
         console.error(error);
         res.status(500).json({ error: 'Ошибка при очистке маркеров.' });
     }
+}); // 👈 ВОТ ЭТА СКОБКА БЫЛА ПОТЕРЯНА
 
-
-    // 16. СОЗДАНИЕ МАРКЕРА
+// 16. СОЗДАНИЕ МАРКЕРА
 app.post('/api/maps/:id/markers', async (req, res) => {
     try {
         const mapId = req.params.id;
-        const { x, y, title, description, author_id } = req.body; // 👈 Ловим author_id
+        const { x, y, title, description, author_id } = req.body;
         
         const insertResult = await db.query(
             'INSERT INTO markers (map_id, x, y, title, description, author_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id',
-            [mapId, x, y, title, description, author_id] // 👈 Сохраняем
+            [mapId, x, y, title, description, author_id]
         );
         
         res.status(201).json({ message: 'Маркер добавлен!', markerId: insertResult.rows[0].id });
@@ -506,10 +506,6 @@ app.delete('/api/markers/:id', async (req, res) => {
         res.status(500).json({ error: 'Ошибка при удалении маркера.' });
     }
 });
-
-});
-
-
 
 // --- ЗАПУСК СЕРВЕРА ---
 const PORT = process.env.PORT || 3000;
