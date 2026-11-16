@@ -438,5 +438,7 @@ border-color: #19003a !important;
         position: static !important;
         transform: none !important;
     }
-
+.container-fluid.position-relative {
+    flex-direction: column !important;
+}
 }
