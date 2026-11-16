@@ -62,6 +62,29 @@
 
 
 
+<div id="musicPlayer" class="container-fluid px-4 mb-3">
+    <div class="d-flex align-items-center p-2 rounded" style="background-color: #fce4d6; border: 2px solid #d5a9ff; max-width: 400px; margin: 0 auto;">
+        
+        <!-- Скрытый аудио-тег -->
+        <audio id="bgAudio" loop>
+            <!-- Вставь сюда свою ссылку из Cloud.ru -->
+            <source src="ТВОЯ_ССЫЛКА_НА_MP3" type="audio/mpeg"> 
+        </audio>
+
+        <!-- Кнопка Play/Pause -->
+        <button id="playPauseBtn" class="btn btn-sm" style="background-color: #8e44ad; color: white; border-radius: 50%; width: 35px; height: 35px; padding: 0;">
+            ▶️
+        </button>
+
+        <!-- Название трека и ползунок громкости -->
+        <div class="ms-3 flex-grow-1 d-flex align-items-center gap-2">
+            <span style="font-family: 'Lora', serif; font-size: 14px; color: #2b1140; white-space: nowrap;">Атмосфера</span>
+            <input type="range" id="volumeControl" class="form-range" min="0" max="1" step="0.05" value="0.3" style="accent-color: #8e44ad;">
+        </div>
+    </div>
+</div>
+
+
 
 <div class="modal fade" id="editMapModal" tabindex="-1" aria-hidden="true">
       <div class="modal-dialog modal-lg">
@@ -332,7 +355,7 @@
                     m.bindPopup(popupContent);
                 });
             }
-            
+
         // Глобальная функция удаления маркера
         window.deleteMarker = async (id) => {
             if (!confirm("Удалить эту метку?")) return;
@@ -340,8 +363,36 @@
             await loadMarkers();
             map.closePopup();
         };
+
+
+        
+         // --- ЛОГИКА МУЗЫКАЛЬНОГО ПЛЕЕРА ---
+            const audio = document.getElementById('bgAudio');
+            const playPauseBtn = document.getElementById('playPauseBtn');
+            const volumeControl = document.getElementById('volumeControl');
+
+            if (audio && playPauseBtn) {
+                // Устанавливаем начальную громкость (30%)
+                audio.volume = volumeControl.value;
+
+                playPauseBtn.addEventListener('click', () => {
+                    if (audio.paused) {
+                        audio.play();
+                        playPauseBtn.textContent = '⏸️'; // Меняем иконку на паузу
+                    } else {
+                        audio.pause();
+                        playPauseBtn.textContent = '▶️'; // Меняем обратно на плей
+                    }
+                });
+
+                // Меняем громкость при движении ползунка
+                volumeControl.addEventListener('input', (e) => {
+                    audio.volume = e.target.value;
+                });
+            }
     });
 </script>
+
 
 
 
