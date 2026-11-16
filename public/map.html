@@ -129,208 +129,198 @@
 
 
 <script>
-    document.addEventListener("DOMContentLoaded", async () => {
-        const urlParams = new URLSearchParams(window.location.search);
-        const mapId = urlParams.get('id');
-        if (!mapId) { window.location.href = 'Karti.html'; return; }
+        document.addEventListener("DOMContentLoaded", async () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const mapId = urlParams.get('id');
+            if (!mapId) { window.location.href = 'Karti.html'; return; }
 
-        let map;
-        let mapWidth, mapHeight;
-        let isMarkerMode = false;
-        let currentMarkerType = null;
-        let tempCoords = null;
-        let currentUser = null;
-        let mapData = null;
-
-        // --- 1. ЗАГРУЗКА ДАННЫХ КАРТЫ ---
-        try {
-            const response = await fetch(`/api/maps/${mapId}`);
-            if (!response.ok) throw new Error("Карта не найдена");
-            mapData = await response.json();
-            
-            document.getElementById('mapTitle').textContent = mapData.title;
-
-            // --- 2. ПРОВЕРКА ПРАВ ---
-            const userString = localStorage.getItem('demiurgeUser');
-            if (userString) {
-                currentUser = JSON.parse(userString);
-                
-                // Всем зарегистрированным показываем кнопку "Режим маркеров"
-                const markerBtn = document.getElementById('toggleMarkerModeBtn');
-                if (markerBtn) {
-                    markerBtn.style.display = 'inline-block';
-                    
-                    // Логика включения/выключения режима
-                    markerBtn.addEventListener('click', () => {
-                        isMarkerMode = !isMarkerMode;
-                        const sidebar = document.getElementById('sidebar');
-                        if (isMarkerMode) {
-                            sidebar.style.display = 'flex';
-                            markerBtn.textContent = '✅ Режим маркеров (ВКЛ)';
-                            markerBtn.classList.replace('btn-primary', 'btn-success');
-                        } else {
-                            sidebar.style.display = 'none';
-                            markerBtn.textContent = '📍 Режим маркеров';
-                            markerBtn.classList.replace('btn-success', 'btn-primary');
-                            currentMarkerType = null;
-                            document.querySelectorAll('.marker-option').forEach(el => el.classList.remove('selected'));
-                        }
-                    });
-                }
-
-                // Настройки только для АВТОРА карты
-                if (Number(currentUser.id) === Number(mapData.author_id)) {
-                    document.getElementById('editMapBtn').style.display = 'inline-block';
-                    document.getElementById('deleteMapBtn').style.display = 'inline-block';
-                    document.getElementById('mapActions').style.display = 'flex';
-
-                    // Настройка формы редактирования карты
-                    document.getElementById('editMapTitle').value = mapData.title;
-                    document.getElementById('editMapDescription').value = mapData.description || '';
-
-                    document.getElementById('editMapBtn').addEventListener('click', () => {
-                        new bootstrap.Modal(document.getElementById('editMapModal')).show();
-                    });
-
-                    document.getElementById('editMapForm').addEventListener('submit', async (e) => {
-                        e.preventDefault();
-                        const formData = new FormData();
-                        formData.append('title', document.getElementById('editMapTitle').value);
-                        formData.append('description', document.getElementById('editMapDescription').value);
-                        formData.append('author_id', currentUser.id);
-                        const file = document.getElementById('editMapImage').files[0];
-                        if (file) formData.append('image', file);
-
-                        const res = await fetch(`/api/maps/${mapId}`, { method: 'PUT', body: formData });
-                        const data = await res.json();
-                        if (res.ok) { alert('✅ ' + data.message); location.reload(); } 
-                        else { alert('⚠️ ' + data.error); }
-                    });
-
-                    // Удаление карты
-                    document.getElementById('deleteMapBtn').addEventListener('click', async () => {
-                        if (!confirm("Вы точно хотите навсегда удалить этот мир и все его маркеры?")) return;
-                        const res = await fetch(`/api/maps/${mapId}?author_id=${currentUser.id}`, { method: 'DELETE' });
-                        if (res.ok) { window.location.href = 'Karti.html'; } 
-                        else { alert('⚠️ Ошибка при удалении'); }
-                    });
-                }
-            }
-
-            // --- 3. ИНИЦИАЛИЗАЦИЯ LEAFLET ---
-            map = L.map('map', { crs: L.CRS.Simple, minZoom: -2 });
-            const img = new Image();
-            img.src = mapData.image_url;
-            
-            img.onload = async () => {
-                mapWidth = img.width;
-                mapHeight = img.height;
-                const bounds = [[0, 0], [mapHeight, mapWidth]];
-                
-                L.imageOverlay(mapData.image_url, bounds).addTo(map);
-                map.fitBounds(bounds);
-                setTimeout(() => { map.invalidateSize(); }, 200);
-
-                await loadMarkers(); // Рисуем существующие маркеры
-
-                // --- 4. КЛИК ПО КАРТЕ (ДОБАВЛЕНИЕ МАРКЕРА) ---
-                map.on('click', (e) => {
-                    if (!currentUser) {
-                        alert("Только Путешественники могут оставлять метки! Войдите в аккаунт.");
-                        return;
-                    }
-                    if (!isMarkerMode || !currentMarkerType) return;
-
-                    // Переводим координаты клика в проценты (0..1)
-                    const x = e.latlng.lng / mapWidth;
-                    const y = 1 - (e.latlng.lat / mapHeight); 
-
-                    tempCoords = { x: x, y: y };
-                    document.getElementById('markerForm').reset();
-                    new bootstrap.Modal(document.getElementById('markerModal')).show();
-                });
-            };
-        } catch (error) {
-            console.error(error);
-            alert("Ошибка при загрузке карты!");
-        }
-
-        // --- 5. ВЫБОР ИКОНКИ МАРКЕРА В ПАНЕЛИ ---
-        document.querySelectorAll('.marker-option').forEach(img => {
-            img.addEventListener('click', (e) => {
-                document.querySelectorAll('.marker-option').forEach(el => el.classList.remove('selected'));
-                e.target.classList.add('selected');
-                currentMarkerType = e.target.src;
-            });
-        });
-
-        // --- 6. СОХРАНЕНИЕ НОВОГО МАРКЕРА ---
-        document.getElementById('markerForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            if (!tempCoords || !currentUser) return;
-
-            const title = document.getElementById('markerTitle').value;
-            const desc = document.getElementById('markerDesc').value;
+            let map;
+            let mapWidth, mapHeight;
+            let isMarkerMode = false;
+            let currentMarkerType = null; // Будет хранить ссылку (src) на выбранную иконку
+            let tempCoords = null;
+            let currentUser = null;
+            let mapData = null;
 
             try {
-                const res = await fetch(`/api/maps/${mapId}/markers`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        x: tempCoords.x, 
-                        y: tempCoords.y, 
-                        title: title, 
-                        description: desc,
-                        author_id: currentUser.id // Передаем того, кто ставит
-                    })
+                const response = await fetch(`/api/maps/${mapId}`);
+                if (!response.ok) throw new Error("Карта не найдена");
+                mapData = await response.json();
+                document.getElementById('mapTitle').textContent = mapData.title;
+
+                const userString = localStorage.getItem('demiurgeUser');
+                if (userString) {
+                    currentUser = JSON.parse(userString);
+                    const markerBtn = document.getElementById('toggleMarkerModeBtn');
+                    if (markerBtn) {
+                        markerBtn.style.display = 'inline-block';
+                        markerBtn.addEventListener('click', () => {
+                            isMarkerMode = !isMarkerMode;
+                            const sidebar = document.getElementById('sidebar');
+                            if (isMarkerMode) {
+                                sidebar.style.display = 'flex';
+                                markerBtn.textContent = '✅ Режим маркеров (ВКЛ)';
+                                markerBtn.classList.replace('btn-primary', 'btn-success');
+                            } else {
+                                sidebar.style.display = 'none';
+                                markerBtn.textContent = '📍 Режим маркеров';
+                                markerBtn.classList.replace('btn-success', 'btn-primary');
+                                currentMarkerType = null;
+                                document.querySelectorAll('.marker-option').forEach(el => el.classList.remove('selected'));
+                            }
+                        });
+                    }
+
+                    if (Number(currentUser.id) === Number(mapData.author_id)) {
+                        // ... (Код для автора карты: редактирование и удаление карты оставляем без изменений) ...
+                        document.getElementById('mapActions').style.display = 'flex';
+                        document.getElementById('editMapTitle').value = mapData.title;
+                        document.getElementById('editMapDescription').value = mapData.description || '';
+                        document.getElementById('editMapBtn').addEventListener('click', () => {
+                            new bootstrap.Modal(document.getElementById('editMapModal')).show();
+                        });
+                        document.getElementById('editMapForm').addEventListener('submit', async (e) => {
+                            e.preventDefault();
+                            const formData = new FormData();
+                            formData.append('title', document.getElementById('editMapTitle').value);
+                            formData.append('description', document.getElementById('editMapDescription').value);
+                            formData.append('author_id', currentUser.id);
+                            const file = document.getElementById('editMapImage').files[0];
+                            if (file) formData.append('image', file);
+                            const res = await fetch(`/api/maps/${mapId}`, { method: 'PUT', body: formData });
+                            if (res.ok) { location.reload(); } 
+                        });
+                        document.getElementById('deleteMapBtn').addEventListener('click', async () => {
+                            if (!confirm("Удалить мир?")) return;
+                            await fetch(`/api/maps/${mapId}?author_id=${currentUser.id}`, { method: 'DELETE' });
+                            window.location.href = 'Karti.html';
+                        });
+                    }
+                }
+
+                map = L.map('map', { crs: L.CRS.Simple, minZoom: -2 });
+                const img = new Image();
+                img.src = mapData.image_url;
+                
+                img.onload = async () => {
+                    mapWidth = img.width;
+                    mapHeight = img.height;
+                    const bounds = [[0, 0], [mapHeight, mapWidth]];
+                    L.imageOverlay(mapData.image_url, bounds).addTo(map);
+                    map.fitBounds(bounds);
+                    setTimeout(() => { map.invalidateSize(); }, 200);
+
+                    await loadMarkers(); 
+
+                    map.on('click', (e) => {
+                        if (!currentUser) { alert("Только Путешественники могут оставлять метки! Войдите в аккаунт."); return; }
+                        if (!isMarkerMode) return;
+                        if (!currentMarkerType) { alert("Сначала выберите иконку в левом меню!"); return; }
+
+                        const x = e.latlng.lng / mapWidth;
+                        const y = 1 - (e.latlng.lat / mapHeight); 
+
+                        tempCoords = { x: x, y: y };
+                        document.getElementById('markerForm').reset();
+                        new bootstrap.Modal(document.getElementById('markerModal')).show();
+                    });
+                };
+            } catch (error) {
+                console.error(error);
+                alert("Ошибка при загрузке карты!");
+            }
+
+            // --- ВЫБОР ИКОНКИ ---
+            document.querySelectorAll('.marker-option').forEach(img => {
+                img.addEventListener('click', (e) => {
+                    document.querySelectorAll('.marker-option').forEach(el => el.classList.remove('selected'));
+                    e.target.classList.add('selected');
+                    currentMarkerType = e.target.src; // Сохраняем ссылку на картинку
                 });
-                
-                if (res.ok) {
-                    bootstrap.Modal.getInstance(document.getElementById('markerModal')).hide();
-                    await loadMarkers(); // Перерисовываем
-                    tempCoords = null;
-                } else {
-                    alert("Ошибка при сохранении маркера!");
-                }
-            } catch (err) { console.error(err); }
+            });
+
+            // --- СОХРАНЕНИЕ МАРКЕРА ---
+            document.getElementById('markerForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                if (!tempCoords || !currentUser || !currentMarkerType) return;
+
+                const title = document.getElementById('markerTitle').value;
+                const desc = document.getElementById('markerDesc').value;
+                const link = document.getElementById('markerLink').value; // Новое поле
+
+                try {
+                    const res = await fetch(`/api/maps/${mapId}/markers`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ 
+                            x: tempCoords.x, 
+                            y: tempCoords.y, 
+                            title: title, 
+                            description: desc,
+                            author_id: currentUser.id,
+                            icon_url: currentMarkerType, // 👈 Передаем иконку
+                            link_url: link // 👈 Передаем ссылку
+                        })
+                    });
+                    
+                    if (res.ok) {
+                        bootstrap.Modal.getInstance(document.getElementById('markerModal')).hide();
+                        await loadMarkers(); 
+                        tempCoords = null;
+                    } else {
+                        alert("Ошибка при сохранении маркера!");
+                    }
+                } catch (err) { console.error(err); }
+            });
+
+            // --- ОТРИСОВКА МАРКЕРОВ ---
+            async function loadMarkers() {
+                map.eachLayer((layer) => {
+                    if (layer instanceof L.Marker) map.removeLayer(layer);
+                });
+
+                const markersResponse = await fetch(`/api/maps/${mapId}/markers`);
+                const markers = await markersResponse.json();
+
+                markers.forEach(marker => {
+                    const markerY = (1 - marker.y) * mapHeight;
+                    const markerX = marker.x * mapWidth;
+
+                    // 👇 СОЗДАЕМ КАСТОМНУЮ ИКОНКУ 👇
+                    const customIcon = L.icon({
+                        iconUrl: marker.icon_url || 'https://cdn-icons-png.flaticon.com/512/684/684908.png', // Если вдруг нет иконки, ставим дефолтную
+                        iconSize: [35, 35], // Размер иконки на карте
+                        iconAnchor: [17, 35], // Точка привязки к карте (низ по центру)
+                        popupAnchor: [0, -35] // Где открывать окошко
+                    });
+
+                    // Создаем маркер с этой иконкой
+                    const m = L.marker([markerY, markerX], { icon: customIcon }).addTo(map);
+                    
+                    // Формируем окошко
+                    let popupContent = `<b>${marker.title}</b><br>${marker.description || ''}<br>`;
+                    
+                    // 👇 ДОБАВЛЯЕМ ССЫЛКУ, ЕСЛИ ОНА ЕСТЬ 👇
+                    if (marker.link_url) {
+                        popupContent += `<a href="${marker.link_url}" target="_blank" class="btn btn-sm btn-info mt-2" style="background-color: #8e44ad; color: white; border: none; text-decoration: none;">📖 Связанный материал</a><br>`;
+                    }
+
+                    if (currentUser && (Number(currentUser.id) === Number(marker.author_id) || Number(currentUser.id) === Number(mapData.author_id))) {
+                        popupContent += `<button onclick="deleteMarker(${marker.id})" class="btn btn-sm btn-danger mt-2">Удалить метку</button>`;
+                    }
+
+                    m.bindPopup(popupContent);
+                });
+            }
+
+            window.deleteMarker = async (id) => {
+                if (!confirm("Удалить эту метку?")) return;
+                await fetch(`/api/markers/${id}`, { method: 'DELETE' });
+                await loadMarkers();
+                map.closePopup();
+            };
         });
-
-        // --- 7. ФУНКЦИЯ ОТРИСОВКИ МАРКЕРОВ ---
-        async function loadMarkers() {
-            map.eachLayer((layer) => {
-                if (layer instanceof L.Marker) map.removeLayer(layer);
-            });
-
-            const markersResponse = await fetch(`/api/maps/${mapId}/markers`);
-            const markers = await markersResponse.json();
-
-            markers.forEach(marker => {
-                const markerY = (1 - marker.y) * mapHeight;
-                const markerX = marker.x * mapWidth;
-
-                const m = L.marker([markerY, markerX]).addTo(map);
-                
-                // Формируем окошко
-                let popupContent = `<b>${marker.title}</b><br>${marker.description || ''}<br>`;
-                
-                // Если текущий пользователь — автор ЭТОГО маркера (или автор карты), добавляем кнопку удаления
-                if (currentUser && (Number(currentUser.id) === Number(marker.author_id) || Number(currentUser.id) === Number(mapData.author_id))) {
-                    popupContent += `<button onclick="deleteMarker(${marker.id})" class="btn btn-sm btn-danger mt-2">Удалить</button>`;
-                }
-
-                m.bindPopup(popupContent);
-            });
-        }
-
-        // Глобальная функция удаления маркера
-        window.deleteMarker = async (id) => {
-            if (!confirm("Удалить эту метку?")) return;
-            await fetch(`/api/markers/${id}`, { method: 'DELETE' });
-            await loadMarkers();
-            map.closePopup();
-        };
-    });
-</script>
+    </script>
 
 
 
