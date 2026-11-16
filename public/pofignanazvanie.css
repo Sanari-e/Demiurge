@@ -364,13 +364,11 @@ border-color: #19003a !important;
 
 
  #map {
-    height: 85vh; 
+    height: 100%; 
     width: 100%;
     background-color: #2b2b2b; 
     border: 3px solid #d5a9ff;
     border-radius: 10px;
-    z-index: 1;
-    min-height: 500px;
 }
 
 
@@ -382,8 +380,12 @@ border-color: #19003a !important;
 
 .map-wrapper {
     display: flex; 
-    height: 80vh; 
+    height: 75vh; 
     gap: 15px; 
+    flex-grow: 1;
+    min-height: 500px;
+    position: relative;
+    z-index: 1;
 }
 
 
@@ -430,13 +432,13 @@ border-color: #19003a !important;
         margin-bottom: 15px;
     }
     #map{
-        height: 50hv !important;
+        height: 60hv !important;
         min-height: 300hv !important;
     }
-    .podvalchik {
-        margin-top: 30px;
-        position: relative;
-        z-index: 10;
+    .map-wrapper{
+        flex-direction: column;
+        height: auto;
+        min-height: auto;
     }
 }
 
