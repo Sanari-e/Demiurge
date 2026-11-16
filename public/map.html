@@ -107,12 +107,11 @@
                 if (userString) {
                     currentUser = JSON.parse(userString);
                     
-                    // Используем == для сравнения (игнорирует разницу строк/чисел)
-                    if (currentUser.id == mapData.author_id) {
+                    // 👇 ЖЕСТКАЯ ПРОВЕРКА: приводим всё к числам и сравниваем строго
+                    if (Number(currentUser.id) === Number(mapData.author_id)) {
                         // Показываем кнопки
                         document.getElementById('mapActions').style.display = 'flex';
                         
-                        // На всякий случай проверяем, что элементы формы существуют
                         const editTitleEl = document.getElementById('editMapTitle');
                         if (editTitleEl) {
                             editTitleEl.value = mapData.title;
