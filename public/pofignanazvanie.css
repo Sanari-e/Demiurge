@@ -28,19 +28,19 @@ body {
   padding: 1rem 2rem;
 }
 
-.content-img {
-  width: 40%;
-  max-width: 450px;          /* чтобы на огромных экранах картинка не разрасталась бесконечно */
-  flex-shrink: 0;
-  border-radius: 15px;
+.content-flex {
+  display: flex;
+  align-items: flex-start;   
+  gap: 20px;                 
+  padding: 20px;
 }
 
 .content-text {
   flex: 1;
-  min-width: 0;              /* важно: без этого текст может «распирать» колонку */
+  min-width: 0;             
 }
 
-/* на узких экранах — картинка сверху, текст снизу */
+
 @media (max-width: 768px) {
   .content-flex {
     flex-direction: column;
