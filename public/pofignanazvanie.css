@@ -384,3 +384,28 @@ border-color: #19003a !important;
     background-color: #fce4d6;
     font-family: 'Lora', serif;
 }
+
+
+.map-wrapper {
+    display: flex; 
+    height: 80vh; 
+    gap: 15px; 
+}
+
+
+.marker-option {
+    width: 50px; height: 50px;
+    border: 2px solid transparent;
+    border-radius: 8px;
+    cursor: pointer;
+    background-color: #fff;
+    padding: 5px;
+    transition: 0.2s;
+}
+.marker-option:hover {
+    transform: scale(1.1);
+}
+.marker-option.selected { 
+    border-color: #2b1140; 
+    box-shadow: 0 0 10px rgba(43, 17, 64, 0.5); 
+}
