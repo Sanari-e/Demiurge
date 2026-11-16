@@ -23,16 +23,16 @@ body {
 
 .content-flex {
   display: flex;
-  align-items: flex-start;   /* колонки прижаты к верху */
-  gap: 2rem;                 /* расстояние между картинкой и текстом */
-  padding: 1rem 2rem;
-}
-
-.content-flex {
-  display: flex;
   align-items: flex-start;   
   gap: 20px;                 
   padding: 20px;
+}
+
+.content-img {
+  width: 40%;
+  max-width: 450px;          
+  flex-shrink: 0;
+  border-radius: 15px;
 }
 
 .content-text {
