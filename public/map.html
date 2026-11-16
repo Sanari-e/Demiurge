@@ -5,13 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&family=Lora:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="pofignanazvanie.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <title>Demiurge</title>
 </head>
-<body style="background-image: url(https://i.pinimg.com/originals/66/74/73/66747366d9cabf8f1725ecdfe3c57b3f.jpg?nii=t); background-size: cover;">
+<body style="background-image: url(https://i.pinimg.com/originals/66/74/73/66747366d9cabf8f1725ecdfe3c57b3f.jpg?nii=t); background-size: cover; display: flex; flex-direction: column; min-height: 100hv;">
 
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script>
@@ -296,32 +296,43 @@
         });
 
         // --- 7. ФУНКЦИЯ ОТРИСОВКИ МАРКЕРОВ ---
-        async function loadMarkers() {
-            map.eachLayer((layer) => {
-                if (layer instanceof L.Marker) map.removeLayer(layer);
-            });
+         async function loadMarkers() {
+                map.eachLayer((layer) => {
+                    if (layer instanceof L.Marker) map.removeLayer(layer);
+                });
 
-            const markersResponse = await fetch(`/api/maps/${mapId}/markers`);
-            const markers = await markersResponse.json();
+                const markersResponse = await fetch(`/api/maps/${mapId}/markers`);
+                const markers = await markersResponse.json();
 
-            markers.forEach(marker => {
-                const markerY = (1 - marker.y) * mapHeight;
-                const markerX = marker.x * mapWidth;
+                markers.forEach(marker => {
+                    const markerY = (1 - marker.y) * mapHeight;
+                    const markerX = marker.x * mapWidth;
 
-                const m = L.marker([markerY, markerX]).addTo(map);
-                
-                // Формируем окошко
-                let popupContent = `<b>${marker.title}</b><br>${marker.description || ''}<br>`;
-                
-                // Если текущий пользователь — автор ЭТОГО маркера (или автор карты), добавляем кнопку удаления
-                if (currentUser && (Number(currentUser.id) === Number(marker.author_id) || Number(currentUser.id) === Number(mapData.author_id))) {
-                    popupContent += `<button onclick="deleteMarker(${marker.id})" class="btn btn-sm btn-danger mt-2">Удалить</button>`;
-                }
+                    // 👇 ВОТ ОНО, СОЗДАНИЕ КАСТОМНОЙ ИКОНКИ 👇
+                    const customIcon = L.icon({
+                        iconUrl: marker.icon_url || 'https://cdn-icons-png.flaticon.com/512/684/684908.png', 
+                        iconSize: [35, 35], 
+                        iconAnchor: [17, 35], 
+                        popupAnchor: [0, -35] 
+                    });
 
-                m.bindPopup(popupContent);
-            });
-        }
+                    // Создаем маркер с этой иконкой
+                    const m = L.marker([markerY, markerX], { icon: customIcon }).addTo(map);
+                    
+                    let popupContent = `<b>${marker.title}</b><br>${marker.description || ''}<br>`;
+                    
+                    if (marker.link_url) {
+                        popupContent += `<a href="${marker.link_url}" target="_blank" class="btn btn-sm btn-info mt-2" style="background-color: #8e44ad; color: white; border: none; text-decoration: none;">📖 Связанный материал</a><br>`;
+                    }
 
+                    if (currentUser && (Number(currentUser.id) === Number(marker.author_id) || Number(currentUser.id) === Number(mapData.author_id))) {
+                        popupContent += `<button onclick="deleteMarker(${marker.id})" class="btn btn-sm btn-danger mt-2">Удалить метку</button>`;
+                    }
+
+                    m.bindPopup(popupContent);
+                });
+            }
+            
         // Глобальная функция удаления маркера
         window.deleteMarker = async (id) => {
             if (!confirm("Удалить эту метку?")) return;
@@ -337,7 +348,7 @@
 
 
 
-<div class="podvalchik">
+<div class="podvalchik" style="position: relative; z-index: 9999 !important; margin-top: auto;">
   <div class="container">
   <div class="row podv">
     <div class="col">
