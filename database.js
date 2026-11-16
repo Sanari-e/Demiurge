@@ -46,7 +46,7 @@ async function initDb() {
     `);
 
 
-     await pool.query(`
+    await pool.query(`
       CREATE TABLE IF NOT EXISTS markers (
         id SERIAL PRIMARY KEY,
         map_id INTEGER REFERENCES maps(id) ON DELETE CASCADE,
@@ -54,6 +54,7 @@ async function initDb() {
         y FLOAT NOT NULL,
         title TEXT,
         description TEXT,
+        author_id INTEGER REFERENCES users(id), -- 👈 ДОБАВИЛИ ЭТО
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);
