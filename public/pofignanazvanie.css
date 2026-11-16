@@ -81,11 +81,7 @@ a, a:link, a:visited, a:hover, a:active, a:focus {
     align-items: center;
     max-width: 85%; 
     justify-self: center;
-    transition: all 0.3s ease-in-out;
-}
-
-#knopkaaa:hover {
-    transform: scale(1.05);
+    margin-right: 3%;
 }
 
 
@@ -419,3 +415,37 @@ border-color: #19003a !important;
             gap: 10px;
             display: none;
         }
+
+
+@media (max-width: 768px) {
+    #mapsGrid {
+        grid-template-columns: 1fr !important;
+        padding: 0 10px !important;
+    }
+    .archiveContent{
+        padding: 10px !important;
+        min-height: auto !important;
+    }
+    .map-card{
+        margin-bottom: 15px;
+    }
+    #map{
+        height: 50hv !important;
+        min-height: 300hv !important;
+    }
+    .podvalchik {
+        margin-top: 30px;
+        position: relative;
+        z-index: 10;
+    }
+}
+
+@media (max-width: 991.98px) {
+    #mapTitle{
+        position: static !important;
+        transform: none !important;
+    }
+.container-fluid.position-relative {
+    flex-direction: column !important;
+}
+}
