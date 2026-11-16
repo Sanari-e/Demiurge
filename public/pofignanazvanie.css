@@ -508,10 +508,11 @@ border-color: #19003a !important;
 }
 
 .video-wrapper video {
-    width: 100%;
+    width: 85%;
     height: auto;
     display: block;
     object-fit: cover;
+    border-radius: 25px;
 }
 
 @media (max-width: 768px) {
