@@ -30,7 +30,7 @@ body {
 
 .content-img {
 float: left;
-margin-left: 5%;
+margin-left: 2%;
   width: 40%;
   max-width: 450px;          
   flex-shrink: 0;
