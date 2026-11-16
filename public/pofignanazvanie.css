@@ -498,14 +498,13 @@ border-color: #19003a !important;
     line-height: 1.5;
 }
 
-.demiurge-list li {
-    font-family: 'Lora', serif;
-    font-size: 1.1rem;
-    color: #333;
-    margin-bottom: 15px;
-    padding-left: 35px;
-    position: relative;
-    line-height: 1.5;
+.demiurge-list li::before {
+    content: '✦'; /* Звездочка */
+    position: absolute;
+    left: 0;
+    top: -2px;
+    color: #8e44ad; /* Фиолетовый цвет */
+    font-size: 1.5rem;
 }
 
 .video-wrapper video {
