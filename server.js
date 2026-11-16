@@ -475,6 +475,38 @@ app.delete('/api/maps/:id/markers', async (req, res) => {
         console.error(error);
         res.status(500).json({ error: 'Ошибка при очистке маркеров.' });
     }
+
+
+    // 16. СОЗДАНИЕ МАРКЕРА
+app.post('/api/maps/:id/markers', async (req, res) => {
+    try {
+        const mapId = req.params.id;
+        const { x, y, title, description, author_id } = req.body; // 👈 Ловим author_id
+        
+        const insertResult = await db.query(
+            'INSERT INTO markers (map_id, x, y, title, description, author_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id',
+            [mapId, x, y, title, description, author_id] // 👈 Сохраняем
+        );
+        
+        res.status(201).json({ message: 'Маркер добавлен!', markerId: insertResult.rows[0].id });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Ошибка при создании маркера.' });
+    }
+});
+
+// 17. УДАЛЕНИЕ ОДНОГО МАРКЕРА
+app.delete('/api/markers/:id', async (req, res) => {
+    try {
+        const markerId = req.params.id;
+        await db.query('DELETE FROM markers WHERE id = $1', [markerId]);
+        res.status(200).json({ message: 'Маркер удален.' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Ошибка при удалении маркера.' });
+    }
+});
+
 });
 
 
