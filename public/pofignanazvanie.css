@@ -18,41 +18,8 @@ body {
      margin-bottom: 2%;
      justify-self: center;
      border-radius: 12%;
+     display: flow-root;
 }
-
-
-.content-flex {
-  display: flex;
-  align-items: flex-start;   
-  gap: 20px;                 
-  padding: 20px;
-}
-
-.content-img {
-float: left;
-margin-left: 2%;
-  width: 40%;
-  max-width: 450px;          
-  flex-shrink: 0;
-  border-radius: 15px;
-}
-
-.content-text {
-  flex: 1;
-  min-width: 0;             
-}
-
-
-@media (max-width: 768px) {
-  .content-flex {
-    flex-direction: column;
-  }
-  .content-img {
-    width: 100%;
-    max-width: none;
-  }
-}
-
 
 .podvalchik {
    background-color: rgb(210, 162, 255);
