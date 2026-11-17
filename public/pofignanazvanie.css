@@ -453,6 +453,9 @@ border-color: #19003a !important;
     .archiveContent{
     padding-top: 5% !important;
 }
+    .logo-demiurga{
+    width: 36px !important;
+}
 }
 
 
@@ -573,9 +576,6 @@ list-style: none;
   #knopkaaa .card-title {
     font-size: 0.8rem;
   }
-    .logo-demiurga{
-    width: 50px !important;
-}
 }
 
 @media (max-width: 480px) {
