@@ -558,9 +558,13 @@ list-style: none;
     box-shadow: 0 0 10px rgba(213, 169, 255, 0.5);
 }
 
+#knopkaaa .card-title {
+    font-size: 1.8rem;
+}
+
 @media (max-width: 768px) {
   #knopkaaa .card-title {
-    font-size: 1.3rem;
+    font-size: 0.8rem;
   }
 }
 
