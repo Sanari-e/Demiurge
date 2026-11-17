@@ -557,3 +557,15 @@ list-style: none;
     background-color: #d5a9ff;
     box-shadow: 0 0 10px rgba(213, 169, 255, 0.5);
 }
+
+@media (max-width: 768px) {
+  #knopkaaa .card-title {
+    font-size: 1.3rem;
+  }
+}
+
+@media (max-width: 480px) {
+  #knopkaaa .card-title {
+    font-size: 1rem;
+  }
+}
