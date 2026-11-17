@@ -469,7 +469,7 @@ border-color: #19003a !important;
     background-color: #fce4d6; 
     font-family: 'Lora', serif;
     color: #2b1140; 
-    min-width: 600px; 
+    word-wrap: break-word;
 }
 
 .demiurge-table th {
