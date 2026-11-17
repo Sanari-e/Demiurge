@@ -22,6 +22,10 @@ body {
      padding-bottom: 3%;
 }
 
+h1, h2, h3, h4, h5 {
+    font-family: 'Lora', serif !important;
+}
+
 .podvalchik {
    background-color: rgb(210, 162, 255);
    
