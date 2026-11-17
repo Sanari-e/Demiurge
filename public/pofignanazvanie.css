@@ -20,6 +20,8 @@ body {
      border-radius: 12%;
      display: flow-root;
      padding-bottom: 3%;
+     padding-left: 2%;
+     padding-right: 2%;
 }
 
 h1, h2, h3, h4, h5 {
