@@ -451,7 +451,7 @@ border-color: #19003a !important;
     flex-direction: column !important;
 }
     .archiveContent{
-    padding-top: 5%;
+    padding-top: 10% !important;
 }
 }
 
