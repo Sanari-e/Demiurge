@@ -327,9 +327,8 @@ border-color: #19003a !important;
 .map-card {
     background-color: #fce4d6;
     border: 2px solid #d5a9ff;
-    width: 95%;
-
     border-radius: 10px;
+    width: 95%;
     overflow: hidden; 
     display: flex;
     flex-direction: column;
@@ -450,11 +449,8 @@ border-color: #19003a !important;
 .container-fluid.position-relative {
     flex-direction: column !important;
 }
-    .archiveContent{
-    padding-top: 5% !important;
-}
-    .logo-demiurga{
-    width: 36px !important;
+.archiveContent{
+    padding-top: 10%;
 }
 }
 
@@ -472,7 +468,18 @@ border-color: #19003a !important;
     background-color: #fce4d6; 
     font-family: 'Lora', serif;
     color: #2b1140; 
-    word-wrap: break-word;
+    word-wrap: break-word !important;
+    table-layout: fixed !important;
+}
+
+.demiurge-table th:nth-child(1),
+.demiurge-table td:nth-child(1) {
+    width: 75%;
+}
+
+.demiurge-table th:nth-child(1),
+.demiurge-table td:nth-child(1) {
+    width: 25%;
 }
 
 .demiurge-table th {
@@ -503,7 +510,7 @@ border-color: #19003a !important;
 }
 
 .demiurge-list {
-list-style: none;
+    list-style: none;
 }
 
 .demiurge-list li {
@@ -562,20 +569,19 @@ list-style: none;
     font-weight: bold;
     transition: all 0.3s ease;
 }
-
 .btn-purple-glow:hover {
     background-color: #d5a9ff;
     box-shadow: 0 0 10px rgba(213, 169, 255, 0.5);
 }
 
-#knopkaaa .card-title {
-    font-size: 1.8rem;
-}
 
 @media (max-width: 768px) {
   #knopkaaa .card-title {
     font-size: 0.8rem;
   }
+  .logo-demiurga{
+    width: 50px !important;
+}
 }
 
 @media (max-width: 480px) {
@@ -587,4 +593,3 @@ list-style: none;
 .logo-demiurga{
     width: 100px !important;
 }
-
