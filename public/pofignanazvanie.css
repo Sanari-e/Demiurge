@@ -566,6 +566,6 @@ list-style: none;
 
 @media (max-width: 480px) {
   #knopkaaa .card-title {
-    font-size: 1rem;
+    font-size: 0.5rem;
   }
 }
