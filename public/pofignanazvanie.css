@@ -573,6 +573,9 @@ list-style: none;
   #knopkaaa .card-title {
     font-size: 0.8rem;
   }
+    .logo-demiurga{
+    width: 50px !important;
+}
 }
 
 @media (max-width: 480px) {
@@ -582,6 +585,6 @@ list-style: none;
 }
 
 .logo-demiurga{
-    width: 36px !important;
+    width: 100px !important;
 }
 
