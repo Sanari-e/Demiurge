@@ -287,13 +287,16 @@
             });
         });
 
-        // --- 6. СОХРАНЕНИЕ НОВОГО МАРКЕРА ---
+         // --- 6. СОХРАНЕНИЕ НОВОГО МАРКЕРА ---
         document.getElementById('markerForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             if (!tempCoords || !currentUser) return;
 
             const title = document.getElementById('markerTitle').value;
             const desc = document.getElementById('markerDesc').value;
+            
+            // 👇 1. Считываем значение из поля со ссылкой
+            const link = document.getElementById('markerLink').value; 
 
             try {
                 const res = await fetch(`/api/maps/${mapId}/markers`, {
@@ -304,9 +307,9 @@
                         y: tempCoords.y, 
                         title: title, 
                         description: desc,
-                        author_id: currentUser.id, // Передаем того, кто ставит
-                        icon_url: currentMarkerType, // 👈 ОБЯЗАТЕЛЬНО ДОЛЖНО БЫТЬ
-                        link_url: link
+                        author_id: currentUser.id,
+                        icon_url: currentMarkerType, // 👈 2. ПЕРЕДАЕМ ИКОНКУ!
+                        link_url: link               // 👈 3. ПЕРЕДАЕМ ССЫЛКУ!
                     })
                 });
                 
