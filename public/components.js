@@ -116,6 +116,10 @@ const mapModalHTML = `
             <label for="mapImage" class="form-label">Изображение карты <span class="text-danger">*</span></label>
             <input type="file" class="form-control" id="mapImage" accept="image/*" required>
           </div>
+          <div class="form-check form-switch mb-3">
+            <input class="form-check-input" type="checkbox" id="mapPrivate">
+            <label class="form-check-label" for="mapPrivate" style="font-family: 'Lora';">Скрыть из общего Атласа (доступ по ссылке)</label>
+          </div>
           <div class="modal-footer px-0 pb-0">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
             <button type="submit" class="btn btn-primary" style="background-color: rgb(210, 162, 255); border: none;">Запечатлеть мир</button>
@@ -127,18 +131,14 @@ const mapModalHTML = `
 </div>
 `;
 
-// ==========================================
-// 2. ЛОГИКА (Всё внутри DOMContentLoaded)
-// ==========================================
+
 document.addEventListener("DOMContentLoaded", () => {
     
-    // 1. Вставляем ВСЕ ТРИ модальных окна
     const modalContainer = document.getElementById('modal-container');
     if (modalContainer) {
         modalContainer.innerHTML = registerModalHTML + loginModalHTML + articleModalHTML + mapModalHTML;
     }
 
-    // --- РЕГИСТРАЦИЯ ---
     const regForm = document.getElementById('registerForm');
     if (regForm) {
         regForm.addEventListener('submit', async (e) => {
@@ -163,7 +163,6 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // --- ВХОД ---
     const loginForm = document.getElementById('loginForm');
     if (loginForm) {
         loginForm.addEventListener('submit', async (e) => {
@@ -187,7 +186,6 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // --- СОЗДАНИЕ СТАТЬИ ---
     const articleForm = document.getElementById('articleForm');
     if (articleForm) {
         articleForm.addEventListener('submit', async (e) => {
@@ -230,7 +228,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
 
-    // --- СОЗДАНИЕ КАРТЫ ---
     const mapForm = document.getElementById('mapForm');
     if (mapForm) {
         mapForm.addEventListener('submit', async (e) => {
@@ -248,6 +245,7 @@ document.addEventListener("DOMContentLoaded", () => {
             formData.append('title', title);
             formData.append('description', description);
             formData.append('image', imageFile);
+            formData.append('is_private', document.getElementById('mapPrivate').checked);
 
             const userString = localStorage.getItem('demiurgeUser');
             if (userString) {
@@ -277,7 +275,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
 
-    // --- МЕНЮ (Гость или Путешественник) ---
     const currentUserString = localStorage.getItem('demiurgeUser');
     const guestItems = document.querySelectorAll('.menu-guest-item');
     const userItems = document.querySelectorAll('.menu-user-item');
@@ -302,28 +299,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 
-
-// ==========================================
-// 3. ФУНКЦИЯ ОТРИСОВКИ АРХИВА (Для будущего использования)
-// ==========================================
 async function loadArticles() {
     try {
         const response = await fetch('/api/articles');
         const articles = await response.json();
         
-        // Передаем полученный массив в функцию отрисовки
         updateArchiveDisplay(articles);
     } catch (error) {
         console.error("Ошибка при загрузке статей:", error);
     }
 }
 
-// Эта функция рисует карточки
 function updateArchiveDisplay(articlesArray) {
     const emptyState = document.getElementById('emptyState');
     const articlesGrid = document.getElementById('articlesGrid');
 
-    // Если мы не на странице архива — выходим
     if (!emptyState || !articlesGrid) return;
 
     if (articlesArray.length === 0) {
@@ -338,10 +328,8 @@ function updateArchiveDisplay(articlesArray) {
             const card = document.createElement('div');
             card.className = 'article-card';
             
-            // Проверяем, есть ли картинка у статьи
             let imgHTML = '';
             if (article.image_url) {
-                // Если есть, выводим тег img
                 imgHTML = `<img src="${article.image_url}" style="width: 100%; height: 150px; object-fit: cover; border-radius: 5px; margin-bottom: 10px;">`;
             }
 
@@ -363,15 +351,10 @@ function updateArchiveDisplay(articlesArray) {
 
 
 
-
-// ==========================================
-// 4. ЛОГИКА ДЛЯ КАРТ (Атлас и Мои миры)
-// ==========================================
 async function loadMaps(isPersonalPage = false) {
     try {
         let url = '/api/maps';
         
-        // Если это личная страница, добавляем фильтр по автору
         if (isPersonalPage) {
             const userString = localStorage.getItem('demiurgeUser');
             if (!userString) {
@@ -381,7 +364,7 @@ async function loadMaps(isPersonalPage = false) {
                 return;
             }
             const user = JSON.parse(userString);
-            url += `?author_id=${user.id}`; // Передаем ID в запрос
+            url += `?author_id=${user.id}`;
         }
 
         const response = await fetch(url);
@@ -398,13 +381,12 @@ async function loadMaps(isPersonalPage = false) {
         } else {
             emptyState.style.display = 'none';
             mapsGrid.style.display = 'grid';
-            mapsGrid.innerHTML = ''; // Очищаем перед отрисовкой
+            mapsGrid.innerHTML = '';
 
             maps.forEach(map => {
                 const card = document.createElement('div');
                 card.className = 'map-card';
                 
-                // Берем описание или ставим заглушку
                 const desc = map.description ? map.description : 'Описание этого мира пока скрыто туманом...';
                 
                 const buttonText = isPersonalPage ? 'Управлять' : 'Исследовать';
