@@ -43,7 +43,7 @@
 
 <div class="container-fluid px-4">
     <div class="map-wrapper">
-        <!-- Боковая панель с маркерами -->
+
         <div id="sidebar">
             <h5 style="font-family: 'MedievalSharp';">Выберите метку</h5>
             <div class="d-flex flex-wrap gap-2">
@@ -55,7 +55,6 @@
             <p style="font-size: 14px; color: #555;">Выберите иконку выше, а затем кликните на карту, чтобы поставить метку.</p>
         </div>
 
-        <!-- Сама карта (без лишних оберток) -->
         <div id="map"></div>
     </div>
 </div>
@@ -65,18 +64,14 @@
 <div id="musicPlayer" class="container-fluid px-4 mb-3">
     <div class="d-flex align-items-center p-2 rounded" style="background-color: #fce4d6; border: 2px solid #d5a9ff; max-width: 400px; margin: 0 auto;">
         
-        <!-- Скрытый аудио-тег -->
         <audio id="bgAudio" loop>
-            <!-- Вставь сюда свою ссылку из Cloud.ru -->
             <source src="https://s3.cloud.ru/demiurge-maps/maps/map-background-music.mp3?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=a8b8ce00-6556-4e0d-bf9b-1dd25bb90d86%3A3d7c071dcbc015a2a5938bdaddddffb7%2F20261117%2Fru-central-1%2Fs3%2Faws4_request&X-Amz-Date=20261117T171433Z&X-Amz-Expires=604800&X-Amz-Signature=53b4f7104e95d06ee3579016932bf0c238cab323d9e92cb9dbf2bd6c5d4fecd2&X-Amz-SignedHeaders=host&response-content-disposition=attachment&x-amz-checksum-mode=ENABLED&x-id=GetObject" type="audio/mpeg"> 
         </audio>
 
-        <!-- Кнопка Play/Pause -->
         <button id="playPauseBtn" class="btn btn-sm" style="background-color: #8e44ad; color: white; border-radius: 50%; width: 35px; height: 35px; padding: 0;">
             ▶️
         </button>
 
-        <!-- Название трека и ползунок громкости -->
         <div class="ms-3 flex-grow-1 d-flex align-items-center gap-2">
             <span style="font-family: 'Lora', serif; font-size: 14px; color: #2b1140; white-space: nowrap;">Атмосфера</span>
             <input type="range" id="volumeControl" class="form-range" min="0" max="1" step="0.05" value="0.3" style="accent-color: #8e44ad;">
@@ -106,6 +101,10 @@
               <div class="mb-3">
                 <label class="form-label">Новое изображение (если нужно заменить)</label>
                 <input type="file" class="form-control" id="editMapImage" accept="image/*">
+              </div>
+              <div class="form-check form-switch mb-3">
+                <input class="form-check-input" type="checkbox" id="editMapPrivate">
+                <label class="form-check-label" for="editMapPrivate" style="font-family: 'Lora';">Приватная карта (скрыть из Атласа)</label>
               </div>
               <div class="modal-footer px-0 pb-0">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
@@ -165,7 +164,6 @@
         let currentUser = null;
         let mapData = null;
 
-        // --- 1. ЗАГРУЗКА ДАННЫХ КАРТЫ ---
         try {
             const response = await fetch(`/api/maps/${mapId}`);
             if (!response.ok) throw new Error("Карта не найдена");
@@ -173,17 +171,14 @@
             
             document.getElementById('mapTitle').textContent = mapData.title;
 
-            // --- 2. ПРОВЕРКА ПРАВ ---
             const userString = localStorage.getItem('demiurgeUser');
             if (userString) {
                 currentUser = JSON.parse(userString);
                 
-                // Всем зарегистрированным показываем кнопку "Режим маркеров"
                 const markerBtn = document.getElementById('toggleMarkerModeBtn');
                 if (markerBtn) {
                     markerBtn.style.display = 'inline-block';
                     
-                    // Логика включения/выключения режима
                     markerBtn.addEventListener('click', () => {
                         isMarkerMode = !isMarkerMode;
                         const sidebar = document.getElementById('sidebar');
@@ -201,13 +196,11 @@
                     });
                 }
 
-                // Настройки только для АВТОРА карты
                 if (Number(currentUser.id) === Number(mapData.author_id)) {
                     document.getElementById('editMapBtn').style.display = 'inline-block';
                     document.getElementById('deleteMapBtn').style.display = 'inline-block';
                     document.getElementById('mapActions').style.display = 'flex';
 
-                    // Настройка формы редактирования карты
                     document.getElementById('editMapTitle').value = mapData.title;
                     document.getElementById('editMapDescription').value = mapData.description || '';
 
@@ -215,12 +208,15 @@
                         new bootstrap.Modal(document.getElementById('editMapModal')).show();
                     });
 
+                    document.getElementById('editMapPrivate').checked = mapData.is_private;
+
                     document.getElementById('editMapForm').addEventListener('submit', async (e) => {
                         e.preventDefault();
                         const formData = new FormData();
                         formData.append('title', document.getElementById('editMapTitle').value);
                         formData.append('description', document.getElementById('editMapDescription').value);
                         formData.append('author_id', currentUser.id);
+                        document.getElementById('editMapPrivate').checked = mapData.is_private;
                         const file = document.getElementById('editMapImage').files[0];
                         if (file) formData.append('image', file);
 
@@ -230,7 +226,6 @@
                         else { alert('⚠️ ' + data.error); }
                     });
 
-                    // Удаление карты
                     document.getElementById('deleteMapBtn').addEventListener('click', async () => {
                         if (!confirm("Вы точно хотите навсегда удалить этот мир и все его маркеры?")) return;
                         const res = await fetch(`/api/maps/${mapId}?author_id=${currentUser.id}`, { method: 'DELETE' });
@@ -240,7 +235,6 @@
                 }
             }
 
-            // --- 3. ИНИЦИАЛИЗАЦИЯ LEAFLET ---
             map = L.map('map', { crs: L.CRS.Simple, minZoom: -2 });
             const img = new Image();
             img.src = mapData.image_url;
@@ -254,9 +248,8 @@
                 map.fitBounds(bounds);
                 setTimeout(() => { map.invalidateSize(); }, 200);
 
-                await loadMarkers(); // Рисуем существующие маркеры
+                await loadMarkers(); 
 
-                // --- 4. КЛИК ПО КАРТЕ (ДОБАВЛЕНИЕ МАРКЕРА) ---
                 map.on('click', (e) => {
                     if (!currentUser) {
                         alert("Только Путешественники могут оставлять метки! Войдите в аккаунт.");
@@ -264,7 +257,6 @@
                     }
                     if (!isMarkerMode || !currentMarkerType) return;
 
-                    // Переводим координаты клика в проценты (0..1)
                     const x = e.latlng.lng / mapWidth;
                     const y = 1 - (e.latlng.lat / mapHeight); 
 
@@ -278,7 +270,6 @@
             alert("Ошибка при загрузке карты!");
         }
 
-        // --- 5. ВЫБОР ИКОНКИ МАРКЕРА В ПАНЕЛИ ---
         document.querySelectorAll('.marker-option').forEach(img => {
             img.addEventListener('click', (e) => {
                 document.querySelectorAll('.marker-option').forEach(el => el.classList.remove('selected'));
@@ -287,7 +278,6 @@
             });
         });
 
-         // --- 6. СОХРАНЕНИЕ НОВОГО МАРКЕРА ---
         document.getElementById('markerForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             if (!tempCoords || !currentUser) return;
@@ -295,7 +285,6 @@
             const title = document.getElementById('markerTitle').value;
             const desc = document.getElementById('markerDesc').value;
             
-            // 👇 1. Считываем значение из поля со ссылкой
             const link = document.getElementById('markerLink').value; 
 
             try {
@@ -308,14 +297,14 @@
                         title: title, 
                         description: desc,
                         author_id: currentUser.id,
-                        icon_url: currentMarkerType, // 👈 2. ПЕРЕДАЕМ ИКОНКУ!
-                        link_url: link               // 👈 3. ПЕРЕДАЕМ ССЫЛКУ!
+                        icon_url: currentMarkerType, 
+                        link_url: link 
                     })
                 });
                 
                 if (res.ok) {
                     bootstrap.Modal.getInstance(document.getElementById('markerModal')).hide();
-                    await loadMarkers(); // Перерисовываем
+                    await loadMarkers(); 
                     tempCoords = null;
                 } else {
                     alert("Ошибка при сохранении маркера!");
@@ -323,7 +312,6 @@
             } catch (err) { console.error(err); }
         });
 
-        // --- 7. ФУНКЦИЯ ОТРИСОВКИ МАРКЕРОВ ---
          async function loadMarkers() {
                 map.eachLayer((layer) => {
                     if (layer instanceof L.Marker) map.removeLayer(layer);
@@ -336,7 +324,6 @@
                     const markerY = (1 - marker.y) * mapHeight;
                     const markerX = marker.x * mapWidth;
 
-                    // 👇 ВОТ ОНО, СОЗДАНИЕ КАСТОМНОЙ ИКОНКИ 👇
                     const customIcon = L.icon({
                         iconUrl: marker.icon_url || 'https://cdn-icons-png.flaticon.com/512/684/684908.png', 
                         iconSize: [35, 35], 
@@ -344,7 +331,6 @@
                         popupAnchor: [0, -35] 
                     });
 
-                    // Создаем маркер с этой иконкой
                     const m = L.marker([markerY, markerX], { icon: customIcon }).addTo(map);
                     
                     let popupContent = `<b>${marker.title}</b><br>${marker.description || ''}<br>`;
@@ -361,7 +347,6 @@
                 });
             }
 
-        // Глобальная функция удаления маркера
         window.deleteMarker = async (id) => {
             if (!confirm("Удалить эту метку?")) return;
             await fetch(`/api/markers/${id}`, { method: 'DELETE' });
@@ -371,26 +356,23 @@
 
 
         
-         // --- ЛОГИКА МУЗЫКАЛЬНОГО ПЛЕЕРА ---
             const audio = document.getElementById('bgAudio');
             const playPauseBtn = document.getElementById('playPauseBtn');
             const volumeControl = document.getElementById('volumeControl');
 
             if (audio && playPauseBtn) {
-                // Устанавливаем начальную громкость (30%)
                 audio.volume = volumeControl.value;
 
                 playPauseBtn.addEventListener('click', () => {
                     if (audio.paused) {
                         audio.play();
-                        playPauseBtn.textContent = '⏸️'; // Меняем иконку на паузу
+                        playPauseBtn.textContent = '⏸️'; 
                     } else {
                         audio.pause();
-                        playPauseBtn.textContent = '▶️'; // Меняем обратно на плей
+                        playPauseBtn.textContent = '▶️';
                     }
                 });
 
-                // Меняем громкость при движении ползунка
                 volumeControl.addEventListener('input', (e) => {
                     audio.volume = e.target.value;
                 });
