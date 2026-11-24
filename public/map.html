@@ -216,7 +216,10 @@
                         formData.append('title', document.getElementById('editMapTitle').value);
                         formData.append('description', document.getElementById('editMapDescription').value);
                         formData.append('author_id', currentUser.id);
-                        document.getElementById('editMapPrivate').checked = mapData.is_private;
+                        
+                        // 👇 ВОТ ПРАВИЛЬНАЯ СТРОЧКА: берем то, что выбрал пользователь, и отправляем на сервер
+                        formData.append('is_private', document.getElementById('editMapPrivate').checked);
+
                         const file = document.getElementById('editMapImage').files[0];
                         if (file) formData.append('image', file);
 
