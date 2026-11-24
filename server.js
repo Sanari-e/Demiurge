@@ -1,4 +1,4 @@
-require('dotenv').config(); // Читаем .env
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const multer = require('multer'); 
@@ -7,7 +7,6 @@ const bcrypt = require('bcryptjs');
 const db = require('./database');  
 const s3 = require('./storage');
 
-// Импортируем только то, что нужно для Cloud.ru
 const { PutObjectCommand, DeleteObjectCommand } = require('@aws-sdk/client-s3');
 
 const app = express();
@@ -16,18 +15,16 @@ app.use(express.json());
 
 app.use(express.static(path.join(__dirname, 'public')));
 
-// --- НАСТРОЙКА MULTER (Храним файл в памяти) ---
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
-// --- МАРШРУТЫ (API) ---
 
-// 1. Главная страница
+
+
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'glavnaya.html'));
 });
 
-// 2. Регистрация
 app.post('/api/register', async (req, res) => {
   try {
     const { username, email, password } = req.body;
@@ -47,7 +44,6 @@ app.post('/api/register', async (req, res) => {
   }
 });
 
-// 3. Вход
 app.post('/api/login', async (req, res) => {
     try {
         const { email, password } = req.body;
@@ -81,14 +77,13 @@ app.post('/api/login', async (req, res) => {
     }
 });
 
-// 4. СОЗДАНИЕ СТАТЬИ
 app.post('/api/articles', upload.single('image'), async (req, res) => {
     try {
         const { title, content, author_id } = req.body;
-        let imageUrlKey = null; // Здесь будет храниться только имя файла
+        let imageUrlKey = null;
 
         if (req.file) {
-            const fileExtension = path.extname(req.file.originalname); // берет только .png или .jpg
+            const fileExtension = path.extname(req.file.originalname); 
             const fileKey = `maps/${Date.now()}${fileExtension}`;
             const command = new PutObjectCommand({
                 Bucket: process.env.CLOUD_RU_BUCKET_NAME,
@@ -97,7 +92,7 @@ app.post('/api/articles', upload.single('image'), async (req, res) => {
                 ContentType: req.file.mimetype,
             });
             await s3.send(command);
-            imageUrlKey = fileKey; // Сохраняем в БД ТОЛЬКО ключ
+            imageUrlKey = fileKey;
         }
 
         if (!title || !content) {
@@ -116,7 +111,6 @@ app.post('/api/articles', upload.single('image'), async (req, res) => {
     }
 });
 
-// 5. ПОЛУЧЕНИЕ ВСЕХ СТАТЕЙ
 app.get('/api/articles', async (req, res) => {
     try {
         const result = await db.query(`
@@ -128,10 +122,8 @@ app.get('/api/articles', async (req, res) => {
         
         const articles = result.rows;
 
-        // Проходимся по статьям и "собираем" полную ссылку для картинок
         for (let article of articles) {
             if (article.image_url) {
-                // Формируем ссылку: https://s3.cloud.ru/имя-бакета/ключ
                 article.image_url = `${process.env.CLOUD_RU_ENDPOINT}/${process.env.CLOUD_RU_BUCKET_NAME}/${article.image_url}`;
             }
         }
@@ -143,7 +135,6 @@ app.get('/api/articles', async (req, res) => {
     }
 });
 
-// 6. ПОЛУЧЕНИЕ ОДНОЙ СТАТЬИ
 app.get('/api/articles/:id', async (req, res) => {
     try {
         const articleId = req.params.id;
@@ -160,7 +151,6 @@ app.get('/api/articles/:id', async (req, res) => {
             return res.status(404).json({ error: 'Статья не найдена' });
         }
 
-        // Собираем полную ссылку на картинку
         if (article.image_url) {
             article.image_url = `${process.env.CLOUD_RU_ENDPOINT}/${process.env.CLOUD_RU_BUCKET_NAME}/${article.image_url}`;
         }
@@ -172,7 +162,6 @@ app.get('/api/articles/:id', async (req, res) => {
     }
 });
 
-// 7. РЕДАКТИРОВАНИЕ СТАТЬИ
 app.put('/api/articles/:id', upload.single('image'), async (req, res) => {
     try {
         const articleId = req.params.id;
@@ -189,7 +178,7 @@ app.put('/api/articles/:id', upload.single('image'), async (req, res) => {
             return res.status(403).json({ error: 'У вас нет прав на редактирование!' });
         }
 
-        let newImageUrlKey = currentArticle.image_url; // По умолчанию оставляем старую картинку
+        let newImageUrlKey = currentArticle.image_url; 
 
         if (req.file) {
             const fileKey = `maps/${Date.now()}_${req.file.originalname}`;
@@ -200,9 +189,8 @@ app.put('/api/articles/:id', upload.single('image'), async (req, res) => {
                 ContentType: req.file.mimetype,
             });
             await s3.send(uploadCommand);
-            newImageUrlKey = fileKey; // Запоминаем ключ новой картинки
+            newImageUrlKey = fileKey; 
 
-            // Удаляем старую картинку из Cloud.ru (если она была)
             if (currentArticle.image_url) {
                 const deleteCommand = new DeleteObjectCommand({
                     Bucket: process.env.CLOUD_RU_BUCKET_NAME,
@@ -212,7 +200,6 @@ app.put('/api/articles/:id', upload.single('image'), async (req, res) => {
             }
         }
 
-        // Обновляем базу данных. В колонку image_url пишем ТОЛЬКО ключ.
         await db.query(
             'UPDATE articles SET title = $1, content = $2, image_url = $3 WHERE id = $4',
             [title, content, newImageUrlKey, articleId]
@@ -225,7 +212,6 @@ app.put('/api/articles/:id', upload.single('image'), async (req, res) => {
     }
 });
 
-// 8. УДАЛЕНИЕ СТАТЬИ
 app.delete('/api/articles/:id', async (req, res) => {
     try {
         const articleId = req.params.id;
@@ -242,7 +228,6 @@ app.delete('/api/articles/:id', async (req, res) => {
             return res.status(403).json({ error: 'У вас нет прав на удаление!' });
         }
 
-        // Удаляем картинку из Cloud.ru
         if (article.image_url) {
             const deleteCommand = new DeleteObjectCommand({
                 Bucket: process.env.CLOUD_RU_BUCKET_NAME,
@@ -251,7 +236,6 @@ app.delete('/api/articles/:id', async (req, res) => {
             await s3.send(deleteCommand);
         }
 
-        // Удаляем из базы данных
         await db.query('DELETE FROM articles WHERE id = $1', [articleId]);
 
         res.status(200).json({ message: 'Статья удалена.' });
@@ -266,16 +250,14 @@ app.delete('/api/articles/:id', async (req, res) => {
 
 app.post('/api/maps', upload.single('image'), async (req, res) => {
     try {
-        const { title, description, author_id } = req.body;
+        const { title, description, author_id, is_private } = req.body;
         
-        // ПРОВЕРКА: если картинки нет, выдаем ошибку
         if (!req.file) {
             return res.status(400).json({ error: 'Вы должны загрузить изображение карты!' });
         }
 
-        // Загружаем картинку в Cloud.ru
         const fileExtension = path.extname(req.file.originalname);
-        const fileKey = `maps/${Date.now()}${fileExtension}`; // Сохраняем в папку maps/
+        const fileKey = `maps/${Date.now()}${fileExtension}`;
         
         const command = new PutObjectCommand({
             Bucket: process.env.CLOUD_RU_BUCKET_NAME,
@@ -285,15 +267,13 @@ app.post('/api/maps', upload.single('image'), async (req, res) => {
         });
         await s3.send(command);
 
-        // Сохраняем в базу (если title пустой, ставим "Без названия")
          if (!title || title.trim() === '') {
             return res.status(400).json({ error: 'Пожалуйста, придумайте название для вашего мира!' });
         }
         
-        // Сохраняем в базу
         const insertResult = await db.query(
-            'INSERT INTO maps (title, description, image_url, author_id) VALUES ($1, $2, $3, $4) RETURNING id',
-            [title, description, fileKey, author_id] // используем title напрямую
+            'INSERT INTO maps (title, description, image_url, author_id, is_private) VALUES ($1, $2, $3, $4, $5) RETURNING id',
+            [title, description, fileKey, author_id, is_private === 'true'] // FormData передает строки
         );
         
         res.status(201).json({ message: 'Карта успешно создана!', mapId: insertResult.rows[0].id });
@@ -303,10 +283,9 @@ app.post('/api/maps', upload.single('image'), async (req, res) => {
     }
 });
 
-// 10. ПОЛУЧЕНИЕ КАРТ (с фильтрацией по автору)
 app.get('/api/maps', async (req, res) => {
     try {
-        const authorId = req.query.author_id; // Если передан ID — фильтруем
+        const authorId = req.query.author_id;
         let query = `
             SELECT maps.*, users.username as author_name 
             FROM maps 
@@ -315,8 +294,12 @@ app.get('/api/maps', async (req, res) => {
         let values = [];
 
         if (authorId) {
+            // Если зашел автор, показываем ВСЕ его карты (и приватные, и публичные)
             query += ` WHERE maps.author_id = $1`;
             values.push(authorId);
+        } else {
+            // Если это общий Атлас, показываем ТОЛЬКО публичные
+            query += ` WHERE maps.is_private = false`;
         }
 
         query += ` ORDER BY maps.created_at DESC`;
@@ -324,13 +307,11 @@ app.get('/api/maps', async (req, res) => {
         const result = await db.query(query, values);
         const maps = result.rows;
 
-        // Формируем полные ссылки на картинки из Cloud.ru
         for (let map of maps) {
             if (map.image_url) {
                 map.image_url = `${process.env.CLOUD_RU_ENDPOINT}/${process.env.CLOUD_RU_BUCKET_NAME}/${map.image_url}`;
             }
         }
-
         res.status(200).json(maps);
     } catch (error) {
         console.error(error);
@@ -339,7 +320,6 @@ app.get('/api/maps', async (req, res) => {
 });
 
 
-    // 11. ПОЛУЧЕНИЕ ОДНОЙ КАРТЫ ПО ID
 app.get('/api/maps/:id', async (req, res) => {
     try {
         const mapId = req.params.id;
@@ -356,7 +336,6 @@ app.get('/api/maps/:id', async (req, res) => {
             return res.status(404).json({ error: 'Карта не найдена' });
         }
 
-        // Собираем полную ссылку на картинку
         if (map.image_url) {
             map.image_url = `${process.env.CLOUD_RU_ENDPOINT}/${process.env.CLOUD_RU_BUCKET_NAME}/${map.image_url}`;
         }
@@ -368,7 +347,6 @@ app.get('/api/maps/:id', async (req, res) => {
     }
 });
 
-// 12. ПОЛУЧЕНИЕ МАРКЕРОВ ДЛЯ КАРТЫ
 app.get('/api/maps/:id/markers', async (req, res) => {
     try {
         const mapId = req.params.id;
@@ -383,7 +361,7 @@ app.get('/api/maps/:id/markers', async (req, res) => {
 app.put('/api/maps/:id', upload.single('image'), async (req, res) => {
     try {
         const mapId = req.params.id;
-        const { title, description, author_id } = req.body;
+        const { title, description, author_id, is_private } = req.body;
 
         const result = await db.query('SELECT * FROM maps WHERE id = $1', [mapId]);
         const currentMap = result.rows[0];
@@ -405,7 +383,6 @@ app.put('/api/maps/:id', upload.single('image'), async (req, res) => {
             await s3.send(uploadCommand);
             newImageUrlKey = fileKey;
 
-            // Удаляем старую картинку
             if (currentMap.image_url) {
                 const deleteCommand = new DeleteObjectCommand({
                     Bucket: process.env.CLOUD_RU_BUCKET_NAME,
@@ -416,8 +393,8 @@ app.put('/api/maps/:id', upload.single('image'), async (req, res) => {
         }
 
         await db.query(
-            'UPDATE maps SET title = $1, description = $2, image_url = $3 WHERE id = $4',
-            [title, description, newImageUrlKey, mapId]
+            'UPDATE maps SET title = $1, description = $2, image_url = $3, is_private = $4 WHERE id = $5',
+            [title, description, newImageUrlKey, is_private === 'true', mapId]
         );
 
         res.status(200).json({ message: 'Карта обновлена!' });
@@ -427,7 +404,6 @@ app.put('/api/maps/:id', upload.single('image'), async (req, res) => {
     }
 });
 
-// 14. УДАЛЕНИЕ КАРТЫ (и всех её маркеров)
 app.delete('/api/maps/:id', async (req, res) => {
     try {
         const mapId = req.params.id;
@@ -439,7 +415,6 @@ app.delete('/api/maps/:id', async (req, res) => {
         if (!map) return res.status(404).json({ error: 'Карта не найдена' });
         if (map.author_id != author_id) return res.status(403).json({ error: 'Нет прав!' });
 
-        // Удаляем картинку из Cloud.ru
         if (map.image_url) {
             const deleteCommand = new DeleteObjectCommand({
                 Bucket: process.env.CLOUD_RU_BUCKET_NAME,
@@ -448,7 +423,6 @@ app.delete('/api/maps/:id', async (req, res) => {
             await s3.send(deleteCommand);
         }
 
-        // Удаляем из БД (маркеры удалятся сами благодаря ON DELETE CASCADE)
         await db.query('DELETE FROM maps WHERE id = $1', [mapId]);
 
         res.status(200).json({ message: 'Карта удалена.' });
@@ -458,13 +432,11 @@ app.delete('/api/maps/:id', async (req, res) => {
     }
 });
 
-// 15. ОЧИСТКА ВСЕХ МАРКЕРОВ
 app.delete('/api/maps/:id/markers', async (req, res) => {
     try {
         const mapId = req.params.id;
         const author_id = req.query.author_id;
 
-        // Проверяем права
         const result = await db.query('SELECT author_id FROM maps WHERE id = $1', [mapId]);
         if (result.rows.length === 0) return res.status(404).json({ error: 'Карта не найдена' });
         if (result.rows[0].author_id != author_id) return res.status(403).json({ error: 'Нет прав!' });
@@ -475,13 +447,11 @@ app.delete('/api/maps/:id/markers', async (req, res) => {
         console.error(error);
         res.status(500).json({ error: 'Ошибка при очистке маркеров.' });
     }
-}); // 👈 ВОТ ЭТА СКОБКА БЫЛА ПОТЕРЯНА
+}); 
 
-// 16. СОЗДАНИЕ МАРКЕРА
 app.post('/api/maps/:id/markers', async (req, res) => {
     try {
         const mapId = req.params.id;
-        // 👇 Добавили icon_url и link_url
         const { x, y, title, description, author_id, icon_url, link_url } = req.body; 
         
         const insertResult = await db.query(
@@ -496,7 +466,6 @@ app.post('/api/maps/:id/markers', async (req, res) => {
     }
 });
 
-// 17. УДАЛЕНИЕ ОДНОГО МАРКЕРА
 app.delete('/api/markers/:id', async (req, res) => {
     try {
         const markerId = req.params.id;
@@ -508,7 +477,8 @@ app.delete('/api/markers/:id', async (req, res) => {
     }
 });
 
-// --- ЗАПУСК СЕРВЕРА ---
+
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`Сервер запущен на порту ${PORT}`);
